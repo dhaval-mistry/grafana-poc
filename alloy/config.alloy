@@ -1,0 +1,40 @@
+// Single OTLP HTTP entry point: the API sends logs, metrics and traces here.
+// No host port 4318 is published for Alloy. Access stays within the Compose network.
+otelcol.receiver.otlp "banking" {
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+  output {
+    logs    = [otelcol.processor.batch.logs.input]
+    metrics = [otelcol.processor.batch.metrics.input]
+    traces  = [otelcol.processor.batch.traces.input]
+  }
+}
+
+// Batch each signal separately so slow storage does not block other signals.
+otelcol.processor.batch "logs" {
+  output { logs = [otelcol.exporter.otlphttp.loki.input] }
+}
+otelcol.processor.batch "metrics" {
+  output { metrics = [otelcol.exporter.otlphttp.prometheus.input] }
+}
+otelcol.processor.batch "traces" {
+  output { traces = [otelcol.exporter.otlphttp.tempo.input] }
+}
+
+// Loki's OTLP endpoint requires the /otlp base URL, not its older push API.
+otelcol.exporter.otlphttp "loki" {
+  client { endpoint = "http://loki:3100/otlp" }
+}
+
+// Prometheus OTLP endpoint is /api/v1/otlp/v1/metrics.
+// Override endpoint explicitly to avoid accidentally sending to /v1/metrics.
+otelcol.exporter.otlphttp "prometheus" {
+  metrics_endpoint = "http://prometheus:9090/api/v1/otlp/v1/metrics"
+  client { endpoint = "http://prometheus:9090" }
+}
+
+// Tempo's existing config receives OTLP HTTP on its internal port 4318.
+otelcol.exporter.otlphttp "tempo" {
+  client { endpoint = "http://tempo:4318" }
+}

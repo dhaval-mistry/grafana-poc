@@ -1,0 +1,30 @@
+# New, distinct names avoid intentionally replacing existing UI-created sources.
+apiVersion: 1
+datasources:
+  - name: Step16 Prometheus
+    uid: step16-prom
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: false
+    editable: false
+  - name: Step16 Tempo
+    uid: step16-tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    editable: false
+  - name: Step16 Loki
+    uid: step16-loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: false
+    jsonData:
+      derivedFields:
+        # Trace IDs appear as a log attribute; click through to Tempo.
+        - name: Trace ID
+          matcherRegex: '([0-9a-f]{32})'
+          datasourceUid: step16-tempo
+          url: '$${__value.raw}'
+          urlDisplayLabel: View trace

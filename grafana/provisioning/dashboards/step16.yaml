@@ -1,0 +1,11 @@
+# File provisioning adds a dedicated lab folder; other dashboards are retained.
+apiVersion: 1
+providers:
+  - name: Step16 Banking API
+    orgId: 1
+    folder: Step16 Banking API
+    type: file
+    disableDeletion: true
+    editable: false
+    options:
+      path: /var/lib/grafana/step16-dashboards

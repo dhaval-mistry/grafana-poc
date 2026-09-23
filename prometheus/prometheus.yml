@@ -1,0 +1,8 @@
+# Minimal configuration for the existing Prometheus container.
+# Application metrics are pushed into Prometheus through its OTLP receiver.
+global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]

@@ -1,0 +1,212 @@
+{
+  "uid": "banking-api-observability",
+  "title": "Banking API | Observability",
+  "description": "Read-only observability dashboard. Choose one correlation ID in the textbox; open its trace_id in Explore / Tempo.",
+  "tags": [
+    "banking-lab",
+    "observability",
+    "Banking-API"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "editable": false,
+  "templating": {
+    "list": [
+      {
+        "name": "correlation_id",
+        "type": "textbox",
+        "label": "Correlation ID (paste from API X-Correlation-ID)",
+        "query": "paste-a-correlation-id",
+        "current": {
+          "text": "paste-a-correlation-id",
+          "value": "paste-a-correlation-id"
+        },
+        "hide": 0,
+        "skipUrlSync": false
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "API request rate / second",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(banking_api_requests_total[5m]))"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "HTTP 5xx rate / second",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 8,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(banking_api_requests_total{http_status=~\"5..\"}[5m]))"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "95th percentile API duration (seconds)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 8,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(banking_api_duration_seconds_bucket[5m])))"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Requests by route and status",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (http_route,http_status) (rate(banking_api_requests_total[5m]))"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Payment API outcomes by HTTP status",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 7,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (http_status) (increase(banking_payment_requests_total[15m]))"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Recent safe API logs",
+      "type": "logs",
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 24,
+        "h": 10
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "step16-loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=\"synthetic-banking-api\"} |= \"api_request_completed\""
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      }
+    },
+    {
+      "id": 7,
+      "title": "Correlation ID investigation",
+      "type": "logs",
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 24,
+        "h": 9
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "step16-loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=\"synthetic-banking-api\"} | correlation_id = \"$correlation_id\""
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      }
+    }
+  ],
+  "links": [
+    {
+      "title": "Open Tempo Explore (paste trace ID from a log record)",
+      "type": "link",
+      "url": "/explore?left=%7B%22datasource%22:%22step16-tempo%22%7D",
+      "targetBlank": false
+    }
+  ]
+}

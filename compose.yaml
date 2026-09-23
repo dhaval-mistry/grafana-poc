@@ -1,0 +1,90 @@
+services:
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+  loki:
+    image: grafana/loki:3.7.0
+    ports:
+      - "127.0.0.1:3100:3100"
+    volumes:
+      - loki-data:/loki
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - prometheus-data:/prometheus
+
+  tempo:
+    image: grafana/tempo:3.0.0
+    user: "0:0"
+    command:
+      - "-target=all"
+      - "-config.file=/etc/tempo.yaml"
+    ports:
+      - "127.0.0.1:3200:3200"
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
+    volumes:
+      - ./tempo/tempo.yaml:/etc/tempo.yaml:ro
+      - tempo-data:/data/tempo
+      - tempo-runtime:/var/tempo
+  banking-api:
+    build:
+      context: ./banking-api
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+    secrets:
+      - banking_app_password
+      - jwt_secret
+
+  postgres:
+    image: postgres:17
+
+    environment:
+      POSTGRES_USER: banking_admin
+      POSTGRES_DB: banking_lab
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+
+    secrets:
+      - postgres_password
+
+    ports:
+      - "127.0.0.1:5432:5432"
+
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U banking_admin -d banking_lab"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+    restart: unless-stopped
+
+volumes:
+  grafana-data:
+  loki-data:
+  prometheus-data:
+  tempo-data:
+  tempo-runtime:
+  postgres-data:
+
+secrets:
+  postgres_password:
+    file: ./.secrets/postgres_password.txt
+
+  banking_app_password:
+    file: ./.secrets/banking_app_password.txt
+
+  jwt_secret:
+    file: ./.secrets/jwt_secret.txt
+  

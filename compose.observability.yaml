@@ -1,0 +1,41 @@
+# Step 16 is additive: run with -f compose.yaml -f compose.step16.yaml.
+# Named volumes, the original Postgres database and existing dashboards are preserved.
+services:
+  banking-api:
+    environment:
+      # Explicitly activate telemetry only in this deployment.
+      OTEL_ENABLED: "true"
+      OTEL_SERVICE_NAME: "synthetic-banking-api"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://alloy:4318"
+      # Do not capture arbitrary request headers or full URLs in span attributes.
+      OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST: ""
+      OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE: ""
+    depends_on:
+      - alloy
+
+  alloy:
+    image: grafana/alloy:v1.10.2
+    command: ["run", "--server.http.listen-addr=0.0.0.0:12345", "/etc/alloy/config.alloy"]
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+    ports:
+      - "127.0.0.1:12345:12345"
+    restart: unless-stopped
+
+  prometheus:
+    # OTLP receiver is disabled by default; enable the internal-only receiver.
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-otlp-receiver"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+
+  grafana:
+    # Only a new named datasource file and dashboard are mounted; existing UI
+    # dashboards live in grafana-data and are not deleted by this overlay.
+    volumes:
+      - ./grafana/provisioning/datasources/step16.yaml:/etc/grafana/provisioning/datasources/step16.yaml:ro
+      - ./grafana/provisioning/dashboards/step16.yaml:/etc/grafana/provisioning/dashboards/step16.yaml:ro
+      - ./grafana/dashboards:/var/lib/grafana/step16-dashboards:ro

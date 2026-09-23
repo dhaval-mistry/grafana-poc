@@ -1,0 +1,15 @@
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+psycopg[binary]>=3.2,<4
+pwdlib[argon2]>=0.2,<1
+PyJWT>=2.10,<3
+python-multipart>=0.0.20,<1
+
+# Step 16: Python SDK and OTLP HTTP exporters for three signals.
+# Resolve and lock exact compatible versions before a production deployment.
+
+opentelemetry-api>=1.36,<2
+opentelemetry-sdk>=1.36,<2
+opentelemetry-exporter-otlp-proto-http>=1.36,<2
+opentelemetry-instrumentation-fastapi>=0.57b0,<1
+opentelemetry-instrumentation-psycopg>=0.57b0,<1
