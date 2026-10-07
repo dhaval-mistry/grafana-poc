@@ -15,7 +15,8 @@ from uuid import UUID
 import psycopg
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+
+from pydantic import BaseModel, field_validator
 
 from app.database import get_connection
 from app.security import get_current_customer
@@ -45,6 +46,25 @@ class TransactionResponse(BaseModel):
     entry_type: str
     amount: Decimal
     created_at: datetime
+
+class RecipientLookupRequest(BaseModel):
+    account_number: str
+
+    @field_validator("account_number")
+    @classmethod
+    def validate_account_number(cls, value):
+        value = value.strip()
+
+        if not value:
+            raise ValueError("Account number is required.")
+
+        return value
+
+
+class RecipientLookupResponse(BaseModel):
+    account_id: UUID
+    account_type: str
+    masked_account_number: str
 
 
 # =====================================================
@@ -139,6 +159,63 @@ def get_my_accounts(
 # =====================================================
 # GET ACCOUNT TRANSACTION HISTORY
 # =====================================================
+
+@router.post(
+    "/lookup",
+    response_model=RecipientLookupResponse,
+)
+def lookup_recipient_account(
+    request: RecipientLookupRequest,
+    customer: dict = Depends(get_current_customer),
+):
+    """
+    Resolve a full recipient account number to a safe internal account ID.
+
+    The full account number is used only for exact database lookup.
+    It is never returned to the caller.
+    """
+
+    customer_id = customer["customer_id"]
+
+    try:
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+
+                cursor.execute(
+                    """
+                    SELECT
+                        account_id,
+                        account_number,
+                        account_type
+                    FROM public.accounts
+                    WHERE account_number = %s
+                        AND is_active = TRUE
+                        AND customer_id <> %s
+                    """,
+                    (
+                        request.account_number,
+                        customer_id,
+                    ),
+                )
+
+                account = cursor.fetchone()
+
+    except (psycopg.Error, OSError):
+        database_error()
+
+    if account is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Recipient account not found.",
+        )
+
+    return RecipientLookupResponse(
+        account_id=account[0],
+        masked_account_number=mask_account_number(
+            account[1]
+        ),
+        account_type=account[2],
+    )
 
 @router.get(
     "/{account_id}/transactions",
