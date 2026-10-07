@@ -16,6 +16,7 @@ from app.customers import router as customers_router
 from app.accounts import router as accounts_router
 from app.payments import router as payments_router
 from app.security_headers import apply_security_headers
+from app.request_context import apply_request_context
 
 app = FastAPI(
     title="Synthetic Banking API",
@@ -50,7 +51,9 @@ app.include_router(payments_router)
 app.middleware("http")(apply_security_headers)
 # Observability middleware reads status, approved route template, and timing only.
 app.middleware("http")(telemetry_middleware)
-
+# Starlette runs the last registered middleware first. Establish ContextVars
+# before telemetry reads them; OpenTelemetry still wraps both via instrument_api.
+app.middleware("http")(apply_request_context)
 
 @app.get("/health", tags=["Health"])
 def health_check() -> dict[str, str]:
