@@ -1,16 +1,20 @@
 # Happy Wallet backend observability in Grafana
 
-The two source-controlled dashboards are provisioned into **Step16 Banking API**:
+All three banking dashboards are provisioned into **Banking | Observability**:
 
 - **Happy Wallet | Journey Investigation** (`happy-wallet-journey-investigation`): correlation search, request details, recent failed journeys, safe logs and related traces.
 - **Happy Wallet | API Health** (`happy-wallet-api-health`): request rate, HTTP 5xx percentage, telemetry freshness, API latency, business outcomes, business duration, failure categories, route/status rates, PostgreSQL span latency, slow traces and recent failures.
+- **Banking API | Observability** (`step16-banking-api`): the original banking dashboard, retaining its existing live UID.
 
-The existing dashboard and provisioning provider remain unchanged. The datasource
-UIDs are `step16-prom`, `step16-loki` and `step16-tempo`. Reload datasource provisioning
-after checkout by restarting only Grafana:
+The provider is named **Banking API | Observability**. Datasource display names
+are **Banking API | Observability | Prometheus**, **Banking API | Observability | Loki**,
+and **Banking API | Observability | Tempo**. Legacy datasource UIDs `step16-prom`,
+`step16-loki` and `step16-tempo` remain stable to preserve existing links. The
+folder UID `bfyyz4nf7mmtcb` targets the existing folder and is also used on fresh
+installations. After changing mount paths, recreate only Grafana:
 
 ```powershell
-docker compose restart grafana
+docker compose -f compose.yaml -f compose.observability.yaml up -d --no-deps --force-recreate grafana
 ```
 
 Open <http://localhost:3000>. Sign in with your existing credentials. Dashboard JSON
@@ -30,8 +34,8 @@ is loaded from the existing mounted dashboard directory; do not import UI-only c
    events regardless of the selected span's short duration.
 5. Confirm the returned log has the same trace ID and correlation ID.
 
-If the link is missing, confirm the selected sources are **Step16 Loki** and
-**Step16 Tempo**, reload Grafana, and inspect the expanded log's structured
+If the link is missing, confirm the selected sources are **Banking API | Observability | Loki** and
+**Banking API | Observability | Tempo**, reload Grafana, and inspect the expanded log's structured
 `trace_id` metadata. The Loki derived field matches that metadata key; it does not
 try to extract a trace ID from the event-name message body.
 
@@ -133,3 +137,28 @@ Validated on 2026-10-07 (local time):
   logged a deprecated internal-ID conflict for that existing dashboard. The
   existing dashboard remains usable; resolving that internal-ID/provisioning
   state is outside this step and was not attempted.
+
+## Folder consolidation
+
+The subsequent folder cleanup targets the existing **Banking | Observability**
+folder, not a second folder with a similar title. Provisioning files are now named
+`banking-api-observability.yaml`; the Compose mounts and provider path use the same
+naming. The original dashboard JSON now uses its actual live UID, correcting the
+internal-ID conflict without creating a duplicate dashboard. Its title is
+**Banking API | Observability**.
+
+Datasource provisioning removes only the three old **Step16** datasource names
+before recreating them with the same UIDs and the new display names. Unrelated
+datasources are untouched. The legacy UIDs intentionally remain opaque stable
+identifiers so saved panels, Explore links and bookmarks continue to work.
+
+After applying the migration, verify all three banking dashboards are in the target
+folder before deleting the empty **Step16 Banking API** folder through Grafana's
+folder actions/settings. Never delete a nonempty folder. On this installation its
+UID is `bg09tgzpnym80e`; the target folder is `bfyyz4nf7mmtcb`.
+
+Migration validation: all three dashboards were confirmed in the target folder,
+all three renamed datasources retained their UIDs and bidirectional links, and
+Grafana reported a healthy database and successful dashboard provisioning. The
+user deleted the empty old folder using their logged-in browser, and a read-only
+storage check confirmed that only the target folder remains.

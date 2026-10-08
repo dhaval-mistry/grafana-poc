@@ -174,7 +174,7 @@ counter increases. This is not counted as a payment attempt.
 Open `http://localhost:3000`, choose Explore, and set Last 15 minutes. Allow about 30 seconds
 for export after each scenario. Copy the appropriate PowerShell ID (`$transferId`, etc.).
 
-In **Step16 Tempo**, run TraceQL (replace the value with your ID):
+In **Banking API | Observability | Tempo**, run TraceQL (replace the value with your ID):
 
 ```traceql
 { span.correlation_id = "YOUR-CORRELATION-ID" }
@@ -185,7 +185,7 @@ Open the trace and expand the business spans. Check parent/child relationships, 
 The HTTP server span retains `banking.correlation_id`. Technical Psycopg spans retain timing
 and safe operation metadata, with SQL text/parameters and exception details removed on export.
 
-In **Step16 Loki**, run:
+In **Banking API | Observability | Loki**, run:
 
 ```logql
 {service_name="synthetic-banking-api"} |= "business_operation_failed"
@@ -205,7 +205,7 @@ logs remain available; only failures add the business-failure event.
 
 ## 8. Prometheus counters and histograms
 
-Open `http://localhost:9090`, or use Grafana Explore → **Step16 Prometheus**. Execute each:
+Open `http://localhost:9090`, or use Grafana Explore → **Banking API | Observability | Prometheus**. Execute each:
 
 ```promql
 sum(banking_login_attempts_total)

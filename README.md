@@ -190,9 +190,16 @@ Step 16: instrument FastAPI and PostgreSQL with OpenTelemetry for structured log
 
 ## Step 16 file inventory and copy rules
 
-This ZIP is meant to be expanded into `C:\code\grafana-poc` **after making a folder backup**. It contains `compose.step16.yaml` (additive Compose overlay; do not replace `compose.yaml`), `banking-api/app/main.py`, new `banking-api/app/telemetry.py`, `banking-api/requirements.txt` (adds OTel packages), `alloy/config.alloy`, `prometheus/prometheus.yml`, `grafana/provisioning/datasources/step16.yaml`, `grafana/provisioning/dashboards/step16.yaml`, `grafana/dashboards/step16-banking-api.json`, and this root README.
+Current Grafana provisioning uses the **Banking | Observability** folder and the
+**Banking API | Observability** provider. Provisioning files are named
+`banking-api-observability.yaml`; legacy `step16-*` UIDs are retained only as stable
+identifiers for existing dashboards and links. See
+[the Grafana guide](docs/grafana-backend-observability.md) for current setup and
+folder migration details. The Step 16 headings below describe the original rollout.
 
-No `loki-config.yaml` is necessary for this initial configuration: existing Loki 3.7.0 has native OTLP support **if its active schema uses tsdb/v13 and structured metadata is enabled**. If OTLP log export reports schema errors, STOP, inspect actual Loki configuration/data and plan a compatible schema change rather than overwriting an existing storage configuration. Tempo's existing `tempo/tempo.yaml` OTLP HTTP receiver on 4318 is reused unchanged. Existing manually configured Grafana data sources and dashboards are retained; the new Step16 sources use distinct names and UIDs.
+This ZIP is meant to be expanded into `C:\code\grafana-poc` **after making a folder backup**. It contains `compose.observability.yaml` (additive Compose overlay; do not replace `compose.yaml`), `banking-api/app/main.py`, new `banking-api/app/telemetry.py`, `banking-api/requirements.txt` (adds OTel packages), `alloy/config.alloy`, `prometheus/prometheus.yml`, `grafana/provisioning/datasources/banking-api-observability.yaml`, `grafana/provisioning/dashboards/banking-api-observability.yaml`, `grafana/dashboards/banking-api.json`, and this root README.
+
+No `loki-config.yaml` is necessary for this initial configuration: existing Loki 3.7.0 has native OTLP support **if its active schema uses tsdb/v13 and structured metadata is enabled**. If OTLP log export reports schema errors, STOP, inspect actual Loki configuration/data and plan a compatible schema change rather than overwriting an existing storage configuration. Tempo's existing `tempo/tempo.yaml` OTLP HTTP receiver on 4318 is reused unchanged. Existing manually configured Grafana data sources and dashboards are retained; the provisioned Banking API | Observability sources use stable UIDs.
 
 **Prerequisites:** existing full project, Docker Desktop, working FastAPI /health, Loki /ready, Prometheus /-/ready, Tempo /ready, existing `.secrets` files. Do not use `docker compose down -v` or reset DB volumes. Port 12345 must be free on localhost. Existing `compose.yaml` is still required, and the original `postgres-data`, Grafana, Loki, Prometheus and Tempo volumes stay in use.
 
@@ -206,7 +213,7 @@ Copy-Item .\banking-api ".\$backup" -Recurse
 # Replace path with your actual downloaded ZIP location.
 Expand-Archive -Path "$HOME\Downloads\step16_backend_observability.zip" -DestinationPath "C:\code\grafana-poc" -Force
 # Verify your original compose.yaml is unchanged; Step 16 uses an overlay.
-docker compose -f compose.yaml -f compose.step16.yaml config --quiet
+docker compose -f compose.yaml -f compose.observability.yaml config --quiet
 ```
 
 **Warning:** Step 16 provisions three new Grafana data sources with distinct UIDs. If you already have sources with these exact UIDs (`step16-prom`, `step16-loki`, `step16-tempo`), stop and reconcile provisioning first. Step 16 does not mount a replacement provisioning directory over Grafana's existing one.
@@ -215,9 +222,9 @@ docker compose -f compose.yaml -f compose.step16.yaml config --quiet
 
 ```powershell
 # Preserve Postgres, Loki, Tempo and their existing persistent volumes.
-docker compose -f compose.yaml -f compose.step16.yaml up -d --build --no-deps alloy prometheus grafana banking-api
+docker compose -f compose.yaml -f compose.observability.yaml up -d --build --no-deps alloy prometheus grafana banking-api
 # If this command reports a startup failure, inspect logs; do not run payment tests.
-docker compose -f compose.yaml -f compose.step16.yaml ps
+docker compose -f compose.yaml -f compose.observability.yaml ps
 # Alloy's HTTP UI helps diagnose pipeline configuration.
 Invoke-WebRequest http://localhost:12345/-/ready
 Invoke-RestMethod http://localhost:8000/health
@@ -231,7 +238,7 @@ Alloy has no host OTLP ingestion port; FastAPI reaches `http://alloy:4318` via t
 **If Alloy config validation fails:**
 
 ```powershell
-docker compose -f compose.yaml -f compose.step16.yaml logs alloy --tail=100
+docker compose -f compose.yaml -f compose.observability.yaml logs alloy --tail=100
 # Validate the syntax without starting another stack:
 docker run --rm -v "${PWD}/alloy/config.alloy:/etc/alloy/config.alloy:ro" grafana/alloy:v1.10.2 validate /etc/alloy/config.alloy
 ```
@@ -273,7 +280,7 @@ Dashboard panels: API request rate, HTTP 5xx rate, 95th-percentile latency, per-
 # Run from the original project root; do not put secrets in command lines.
 .\.venv-admin\Scripts\python.exe .\banking-api\seed\test_api_regression.py
 # Inspect only metadata; do not upload raw logs containing possible secrets.
-docker compose -f compose.yaml -f compose.step16.yaml logs banking-api alloy --tail=100
+docker compose -f compose.yaml -f compose.observability.yaml logs banking-api alloy --tail=100
 ```
 
 Database read-only verification in pgAdmin (original `banking_lab`):
@@ -292,7 +299,7 @@ The counts should match your pre-Step16 baseline; total funds were previously $5
 
 ```powershell
 # Check configuration and component startup errors.
-docker compose -f compose.yaml -f compose.step16.yaml logs --tail=100 banking-api alloy prometheus grafana loki tempo
+docker compose -f compose.yaml -f compose.observability.yaml logs --tail=100 banking-api alloy prometheus grafana loki tempo
 # If Step16 code or dependencies fail, restore the saved banking-api folder;
 # restart banking-api with ONLY your original compose.yaml. Do not delete volumes.
 docker compose -f compose.yaml up -d --build --no-deps banking-api
