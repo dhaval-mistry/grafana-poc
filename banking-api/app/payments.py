@@ -38,6 +38,7 @@ from pydantic import BaseModel, field_validator
 
 from app.database import get_connection
 from app.security import get_current_customer
+from app.telemetry import PaymentTransaction, business_span, fail_span, mark_payment_outcome
 
 
 router = APIRouter(
@@ -229,7 +230,7 @@ def create_payment(
 
     try:
 
-        with get_connection() as connection:
+        with PaymentTransaction(get_connection()) as connection:
 
             with connection.cursor() as cursor:
 
@@ -315,63 +316,67 @@ def create_payment(
                     # This helps avoid deadlocks.
                     # -------------------------------------------------
 
-                    locked_accounts = {}
+                    with business_span('payment.validate_accounts'):
+                        locked_accounts = {}
 
-                    for account_id in sorted(
-                        [source_id, destination_id],
-                        key=str,
-                    ):
+                        for account_id in sorted(
+                            [source_id, destination_id],
+                            key=str,
+                        ):
 
-                        account = lock_account(
-                            cursor,
-                            account_id,
-                        )
+                            account = lock_account(
+                                cursor,
+                                account_id,
+                            )
 
-                        if account is None:
+                            if account is None:
+                                payment_error(
+                                    404,
+                                    "Account not found.",
+                                )
+
+                            locked_accounts[account_id] = account
+
+                        source = locked_accounts[source_id]
+
+                        destination = locked_accounts[destination_id]
+
+                        # -------------------------------------------------
+                        # Validate account access and eligibility.
+                        # -------------------------------------------------
+
+                        if (
+                            source[1] != customer_id
+                            or not source[3]
+                        ):
                             payment_error(
                                 404,
                                 "Account not found.",
                             )
 
-                        locked_accounts[account_id] = account
+                        if not destination[3]:
+                            payment_error(
+                                404,
+                                "Account not found.",
+                            )
 
-                    source = locked_accounts[source_id]
-
-                    destination = locked_accounts[destination_id]
-
-                    # -------------------------------------------------
-                    # Validate account access and eligibility.
-                    # -------------------------------------------------
-
-                    if (
-                        source[1] != customer_id
-                        or not source[3]
-                    ):
-                        payment_error(
-                            404,
-                            "Account not found.",
-                        )
-
-                    if not destination[3]:
-                        payment_error(
-                            404,
-                            "Account not found.",
-                        )
-
-                    if (
-                        source[4] != "USD"
-                        or destination[4] != "USD"
-                    ):
-                        payment_error(
-                            409,
-                            "Unsupported currency.",
-                        )
+                        if (
+                            source[4] != "USD"
+                            or destination[4] != "USD"
+                        ):
+                            payment_error(
+                                409,
+                                "Unsupported currency.",
+                            )
 
                     # -------------------------------------------------
                     # Determine payment outcome.
                     # -------------------------------------------------
 
-                    insufficient_funds = source[2] < amount
+                    with business_span("payment.validate_balance") as balance_span:
+                        insufficient_funds = source[2] < amount
+                        if insufficient_funds:
+                            fail_span(balance_span, "insufficient_funds")
 
                     payment_status = (
                         "rejected"
@@ -389,113 +394,114 @@ def create_payment(
                     # in ONE connection context. Any uncaught exception before
                     # leaving the context rolls the entire transaction back.
                     # Save the payment outcome.
-                    cursor.execute(
-                        """
-                        INSERT INTO public.payments
-                        (
-                            initiated_by_user_id,
-                            source_account_id,
-                            destination_account_id,
-                            amount,
-                            status,
-                            error_code,
-                            idempotency_key
-                        )
-                        VALUES (
-                            %s, %s, %s, %s, %s, %s, %s
-                        )
-                        RETURNING
-                            payment_id,
-                            source_account_id,
-                            destination_account_id,
-                            amount,
-                            status,
-                            error_code,
-                            created_at,
-                            completed_at
-                        """,
-                        (
-                            user_id,
-                            source_id,
-                            destination_id,
-                            amount,
-                            payment_status,
-                            error_code,
-                            idempotency_key,
-                        ),
-                    )
-
-                    payment_row = cursor.fetchone()
-
-                    payment_id = payment_row[0]
-
-                    # -------------------------------------------------
-                    # Insufficient funds:
-                    # Retain the rejected payment, but do not
-                    # update balances or create transactions.
-                    # -------------------------------------------------
-
-                    if not insufficient_funds:
-
-                        # Debit source account.
+                    with business_span('payment.persist'):
                         cursor.execute(
                             """
-                            UPDATE public.accounts
-                            SET balance = balance - %s
-                            WHERE account_id = %s
-                                AND balance >= %s
-                            RETURNING balance
-                            """,
-                            (amount, source_id, amount),
-                        )
-
-                        if cursor.fetchone() is None:
-                            payment_error(
-                                503,
-                                "Payment processing unavailable.",
-                            )
-
-                        # Credit destination account.
-                        cursor.execute(
-                            """
-                            UPDATE public.accounts
-                            SET balance = balance + %s
-                            WHERE account_id = %s
-                            """,
-                            (amount, destination_id),
-                        )
-
-                        # Record source debit.
-                        cursor.execute(
-                            """
-                            INSERT INTO public.transactions
+                            INSERT INTO public.payments
                             (
-                                payment_id,
-                                account_id,
-                                entry_type,
-                                amount
+                                initiated_by_user_id,
+                                source_account_id,
+                                destination_account_id,
+                                amount,
+                                status,
+                                error_code,
+                                idempotency_key
                             )
-                            VALUES (%s, %s, 'debit', %s)
+                            VALUES (
+                                %s, %s, %s, %s, %s, %s, %s
+                            )
+                            RETURNING
+                                payment_id,
+                                source_account_id,
+                                destination_account_id,
+                                amount,
+                                status,
+                                error_code,
+                                created_at,
+                                completed_at
                             """,
-                            (payment_id, source_id, amount),
-                        )
-
-                        # Record destination credit.
-                        cursor.execute(
-                            """
-                            INSERT INTO public.transactions
                             (
-                                payment_id,
-                                account_id,
-                                entry_type,
-                                amount
-                            )
-                            VALUES (%s, %s, 'credit', %s)
-                            """,
-                            (payment_id, destination_id, amount),
+                                user_id,
+                                source_id,
+                                destination_id,
+                                amount,
+                                payment_status,
+                                error_code,
+                                idempotency_key,
+                            ),
                         )
 
-                    outcome = payment_from_row(payment_row)
+                        payment_row = cursor.fetchone()
+
+                        payment_id = payment_row[0]
+
+                        # -------------------------------------------------
+                        # Insufficient funds:
+                        # Retain the rejected payment, but do not
+                        # update balances or create transactions.
+                        # -------------------------------------------------
+
+                        if not insufficient_funds:
+
+                            # Debit source account.
+                            cursor.execute(
+                                """
+                                UPDATE public.accounts
+                                SET balance = balance - %s
+                                WHERE account_id = %s
+                                    AND balance >= %s
+                                RETURNING balance
+                                """,
+                                (amount, source_id, amount),
+                            )
+
+                            if cursor.fetchone() is None:
+                                payment_error(
+                                    503,
+                                    "Payment processing unavailable.",
+                                )
+
+                            # Credit destination account.
+                            cursor.execute(
+                                """
+                                UPDATE public.accounts
+                                SET balance = balance + %s
+                                WHERE account_id = %s
+                                """,
+                                (amount, destination_id),
+                            )
+
+                            # Record source debit.
+                            cursor.execute(
+                                """
+                                INSERT INTO public.transactions
+                                (
+                                    payment_id,
+                                    account_id,
+                                    entry_type,
+                                    amount
+                                )
+                                VALUES (%s, %s, 'debit', %s)
+                                """,
+                                (payment_id, source_id, amount),
+                            )
+
+                            # Record destination credit.
+                            cursor.execute(
+                                """
+                                INSERT INTO public.transactions
+                                (
+                                    payment_id,
+                                    account_id,
+                                    entry_type,
+                                    amount
+                                )
+                                VALUES (%s, %s, 'credit', %s)
+                                """,
+                                (payment_id, destination_id, amount),
+                            )
+
+                        outcome = payment_from_row(payment_row)
 
         # At this point, the database transaction has committed.
         # Do not raise the insufficient-funds exception before
@@ -509,6 +515,7 @@ def create_payment(
         )
 
     # Return the same stored rejection on an identical retry.
+    mark_payment_outcome(replayed=replayed, rejected=outcome.status == "rejected")
     if outcome.status == "rejected":
 
         return JSONResponse(

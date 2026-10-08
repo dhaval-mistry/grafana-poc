@@ -25,6 +25,7 @@ from fastapi import Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.database import get_connection
+from app.telemetry import mark_business_failure
 from app.login_limiter import (
     check_login_allowed,
     clear_login_failures,
@@ -306,6 +307,7 @@ def login(
     except (psycopg.Error, OSError):
 
         # Do not expose database errors to the caller.
+        mark_business_failure("database")
         raise HTTPException(
             status_code=503,
             detail="Authentication service temporarily unavailable.",
@@ -363,6 +365,7 @@ def login(
 
     except (OSError, RuntimeError):
 
+        mark_business_failure("internal")
         raise HTTPException(
             status_code=503,
             detail="Authentication service temporarily unavailable.",

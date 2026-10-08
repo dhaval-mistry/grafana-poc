@@ -20,6 +20,7 @@ from pydantic import BaseModel, field_validator
 
 from app.database import get_connection
 from app.security import get_current_customer
+from app.telemetry import mark_business_failure
 
 
 router = APIRouter(
@@ -201,6 +202,7 @@ def lookup_recipient_account(
                 account = cursor.fetchone()
 
     except (psycopg.Error, OSError):
+        mark_business_failure("database")
         database_error()
 
     if account is None:
