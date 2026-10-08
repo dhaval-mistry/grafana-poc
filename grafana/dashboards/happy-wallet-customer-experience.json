@@ -1,0 +1,748 @@
+{
+  "uid": "happy-wallet-customer-experience",
+  "title": "Happy Wallet | Customer Experience",
+  "description": "Safe browser journey outcomes, interaction timing and failure events. Browser actions are distinct from financial executions.",
+  "tags": [
+    "happy-wallet",
+    "customer-experience"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "refresh": "30s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Browser experience: interpretation",
+      "type": "text",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 3
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Browser starts, completions and **failure events** describe UI activity, not unique financial executions. A retried transfer can fail and later complete.\n\nSession IDs remain searchable log/trace context; unique/active session counts are not available from the safe aggregate metrics. Timing covers API client duration and route commit to the next frame."
+      },
+      "targets": []
+    },
+    {
+      "id": 2,
+      "title": "Login journey activity",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 12,
+        "h": 5
+      },
+      "description": "Activity in the selected range. Missing series means no observed data. Failures may precede completion on retry.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No observed data",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "sum(increase(banking_web_journey_events_total{journey_type=\"login\",event=\"journey_started\"}[$__range]))",
+          "editorMode": "code",
+          "instant": true,
+          "range": false,
+          "legendFormat": "Starts"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "B",
+          "expr": "sum(increase(banking_web_journey_events_total{journey_type=\"login\",event=\"journey_completed\"}[$__range]))",
+          "editorMode": "code",
+          "instant": true,
+          "range": false,
+          "legendFormat": "Completions"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "C",
+          "expr": "sum(increase(banking_web_journey_events_total{journey_type=\"login\",event=\"journey_failed\"}[$__range]))",
+          "editorMode": "code",
+          "instant": true,
+          "range": false,
+          "legendFormat": "Failure events"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      }
+    },
+    {
+      "id": 3,
+      "title": "Transfer journey activity",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 3,
+        "w": 12,
+        "h": 5
+      },
+      "description": "Activity in the selected range. Missing series means no observed data. Failures may precede completion on retry.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No observed data",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "sum(increase(banking_web_journey_events_total{journey_type=\"transfer\",event=\"journey_started\"}[$__range]))",
+          "editorMode": "code",
+          "instant": true,
+          "range": false,
+          "legendFormat": "Starts"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "B",
+          "expr": "sum(increase(banking_web_journey_events_total{journey_type=\"transfer\",event=\"journey_completed\"}[$__range]))",
+          "editorMode": "code",
+          "instant": true,
+          "range": false,
+          "legendFormat": "Completions"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "C",
+          "expr": "sum(increase(banking_web_journey_events_total{journey_type=\"transfer\",event=\"journey_failed\"}[$__range]))",
+          "editorMode": "code",
+          "instant": true,
+          "range": false,
+          "legendFormat": "Failure events"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Frontend API duration",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 7
+      },
+      "description": "Client duration includes transport and response parsing. Empty histogram windows produce gaps.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "histogram_quantile(0.5,sum by(le)(rate(banking_web_api_duration_seconds_bucket[$__rate_interval])))",
+          "editorMode": "code",
+          "instant": false,
+          "range": true,
+          "legendFormat": "P50"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "B",
+          "expr": "histogram_quantile(0.95,sum by(le)(rate(banking_web_api_duration_seconds_bucket[$__rate_interval])))",
+          "editorMode": "code",
+          "instant": false,
+          "range": true,
+          "legendFormat": "P95"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "C",
+          "expr": "histogram_quantile(0.99,sum by(le)(rate(banking_web_api_duration_seconds_bucket[$__rate_interval])))",
+          "editorMode": "code",
+          "instant": false,
+          "range": true,
+          "legendFormat": "P99"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      }
+    },
+    {
+      "id": 5,
+      "title": "Navigation timing P95 by page",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 12,
+        "h": 7
+      },
+      "description": "Route commit to the next frame; not data loading, full paint completion or Web Vitals. Only approved page templates.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "histogram_quantile(0.95,sum by(le,route_template)(rate(banking_web_navigation_duration_seconds_bucket[$__rate_interval])))",
+          "editorMode": "code",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{route_template}}"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      }
+    },
+    {
+      "id": 6,
+      "title": "JavaScript error events",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 15,
+        "w": 12,
+        "h": 3
+      },
+      "description": "No messages/stacks are collected. No series means no observed error data.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No observed data",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "sum(increase(banking_web_javascript_errors_total[$__range]))",
+          "editorMode": "code",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      }
+    },
+    {
+      "id": 7,
+      "title": "JavaScript error trend",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 18,
+        "w": 12,
+        "h": 4
+      },
+      "description": "Safe error kinds only. One event is not necessarily one affected user.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "sum by(error_kind)(rate(banking_web_javascript_errors_total[$__rate_interval]))",
+          "editorMode": "code",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{error_kind}}"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      }
+    },
+    {
+      "id": 8,
+      "title": "Frontend failure categories",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 22,
+        "w": 12,
+        "h": 7
+      },
+      "description": "Failure events, including recipient verification. Retries can produce multiple events. HTTP 409 remains conservative validation.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "sum by(journey_type,failure_category)(increase(banking_web_journey_events_total{event=~\"journey_failed|recipient_verification_failed\"}[$__range]))",
+          "editorMode": "code",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "journey_type": "Journey",
+              "failure_category": "Failure category",
+              "Value": "Failure events"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Journey completion trend",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 22,
+        "w": 12,
+        "h": 7
+      },
+      "description": "Completions per second by journey type. Browser completion events do not replace backend transfer execution counts.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "sum by(journey_type)(rate(banking_web_journey_events_total{event=\"journey_completed\"}[$__rate_interval]))",
+          "editorMode": "code",
+          "instant": false,
+          "range": true,
+          "legendFormat": "{{journey_type}}"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      }
+    },
+    {
+      "id": 10,
+      "title": "Recent failed frontend journeys",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "w": 24,
+        "h": 9
+      },
+      "description": "Safe frontend failures; select Trace ID for Tempo or Correlation ID for end-to-end investigation. Bound to 200 events.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "Unavailable",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Trace ID"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open Tempo trace",
+                    "url": "/explore?left=%7B%22datasource%22%3A%22step16-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22${__value.raw}%22%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22${__from}%22%2C%22to%22%3A%22${__to}%22%7D%7D",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Correlation ID"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Investigate correlation ID",
+                    "url": "/d/happy-wallet-journey-investigation?var-correlation_id=${__value.raw}&from=${__from}&to=${__to}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Duration"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ms"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "step16-loki"
+          },
+          "refId": "A",
+          "expr": "{service_name=\"happy-wallet-web\"} |~ \"journey_failed|recipient_verification_failed\" | line_format `{\"correlation_id\":\"{{.correlation_id}}\",\"trace_id\":\"{{.trace_id}}\",\"journey_type\":\"{{.journey_type}}\",\"journey_stage\":\"{{.journey_stage}}\",\"outcome\":\"{{.outcome}}\",\"failure_category\":\"{{.failure_category}}\"}`",
+          "queryType": "range",
+          "maxLines": 200,
+          "editorMode": "code"
+        }
+      ],
+      "datasource": {
+        "type": "loki",
+        "uid": "step16-loki"
+      },
+      "transformations": [
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "Line",
+            "format": "json",
+            "replace": true,
+            "keepTime": true
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(Time.*|correlation_id|trace_id|journey_type|journey_stage|outcome|failure_category)$"
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "correlation_id": "Correlation ID",
+              "trace_id": "Trace ID",
+              "journey_type": "Journey",
+              "journey_stage": "Failure stage",
+              "failure_category": "Failure category",
+              "http_route": "Route",
+              "http_method": "Method",
+              "http_status": "HTTP status",
+              "duration_ms": "Duration",
+              "outcome": "Outcome"
+            },
+            "excludeByName": {},
+            "indexByName": {}
+          }
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "type": "link",
+      "title": "Journey Investigation",
+      "url": "/d/happy-wallet-journey-investigation?from=${__from}&to=${__to}"
+    },
+    {
+      "type": "link",
+      "title": "API Health",
+      "url": "/d/happy-wallet-api-health?from=${__from}&to=${__to}"
+    }
+  ]
+}

@@ -27,7 +27,8 @@ datasources:
       tracesToLogsV2:
         datasourceUid: step16-loki
         customQuery: true
-        query: '{service_name="synthetic-banking-api"} | trace_id = "$${__trace.traceId}"'
+        # The same distributed trace can include browser and API event records.
+        query: '{service_name=~"happy-wallet-web|synthetic-banking-api"} | trace_id = "$${__trace.traceId}"'
         spanStartTimeShift: '-1m'
         spanEndTimeShift: '1m'
         filterByTraceID: false

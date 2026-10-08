@@ -144,7 +144,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "Enter a **Correlation ID** above, select the relevant time range, then open a **Trace ID** or **View trace** link.\n\n**Empty correlation ID returns no correlated logs or traces.** Recent failures remain visible below. Correlation IDs may group retries; each technical request has its own trace ID. No customer or account information is shown."
+        "content": "Enter a **Correlation ID** above, select the relevant time range, then open a **Trace ID** or **View trace** link.\n\n**Empty correlation ID returns no correlated logs or traces.** Recent failures remain visible below. Correlation IDs may group retries; each technical request has its own trace ID. No customer or account information is shown.\n\nThe related trace can contain **browser journey \u2192 frontend API \u2192 FastAPI \u2192 business \u2192 PostgreSQL**. Inspect frontend API-span duration alongside the backend request duration. Both services appear in correlated logs; metric panels cannot be filtered by correlation ID."
       },
       "targets": []
     },
@@ -543,7 +543,7 @@
     },
     {
       "id": 5,
-      "title": "Correlated safe Loki logs",
+      "title": "Correlated frontend and backend Loki logs",
       "type": "logs",
       "gridPos": {
         "x": 0,
@@ -585,7 +585,7 @@
             "uid": "step16-loki"
           },
           "refId": "A",
-          "expr": "{service_name=\"synthetic-banking-api\"} | correlation_id != \"\" | correlation_id = ${correlation_id:doublequote}",
+          "expr": "{service_name=~\"happy-wallet-web|synthetic-banking-api\"} | correlation_id != \"\" | correlation_id = ${correlation_id:doublequote}",
           "queryType": "range",
           "maxLines": 500,
           "editorMode": "code"
@@ -606,7 +606,7 @@
         "w": 12,
         "h": 10
       },
-      "description": "Click a trace ID to inspect server, business and PostgreSQL spans. Empty correlation ID returns no traces.",
+      "description": "Matching distributed traces. Open Tempo to inspect frontend API latency, backend business stages and PostgreSQL children. Empty correlation returns no traces.",
       "fieldConfig": {
         "defaults": {
           "unit": "short",
@@ -635,7 +635,7 @@
             "uid": "step16-tempo"
           },
           "refId": "A",
-          "query": "{ resource.service.name = \"synthetic-banking-api\" && ((span.correlation_id != \"\" && span.correlation_id = ${correlation_id:doublequote}) || (span.banking.correlation_id != \"\" && span.banking.correlation_id = ${correlation_id:doublequote})) }",
+          "query": "{ resource.service.name =~ \"happy-wallet-web|synthetic-banking-api\" && ((span.correlation_id != \"\" && span.correlation_id = ${correlation_id:doublequote}) || (span.banking.correlation_id != \"\" && span.banking.correlation_id = ${correlation_id:doublequote})) }",
           "queryType": "traceql",
           "metricsQueryType": "range",
           "tableType": "traces",
@@ -646,6 +646,143 @@
         "type": "tempo",
         "uid": "step16-tempo"
       }
+    },
+    {
+      "id": 7,
+      "title": "Frontend events matching correlation ID",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 35,
+        "w": 24,
+        "h": 8
+      },
+      "description": "Exact correlation search across safe frontend events. Empty ID deliberately returns no rows; stage is span/log context, not a metric ID label.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "Unavailable",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Trace ID"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open Tempo trace",
+                    "url": "/explore?left=%7B%22datasource%22%3A%22step16-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22${__value.raw}%22%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22${__from}%22%2C%22to%22%3A%22${__to}%22%7D%7D",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Correlation ID"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Investigate correlation ID",
+                    "url": "/d/happy-wallet-journey-investigation?var-correlation_id=${__value.raw}&from=${__from}&to=${__to}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Duration"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ms"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "step16-loki"
+          },
+          "refId": "A",
+          "expr": "{service_name=\"happy-wallet-web\"} | correlation_id != \"\" | correlation_id = ${correlation_id:doublequote} | line_format `{\"correlation_id\":\"{{.correlation_id}}\",\"trace_id\":\"{{.trace_id}}\",\"journey_type\":\"{{.journey_type}}\",\"journey_stage\":\"{{.journey_stage}}\",\"outcome\":\"{{.outcome}}\",\"failure_category\":\"{{.failure_category}}\"}`",
+          "queryType": "range",
+          "maxLines": 200,
+          "editorMode": "code"
+        }
+      ],
+      "datasource": {
+        "type": "loki",
+        "uid": "step16-loki"
+      },
+      "transformations": [
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "Line",
+            "format": "json",
+            "replace": true,
+            "keepTime": true
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(Time.*|correlation_id|trace_id|journey_type|journey_stage|outcome|failure_category)$"
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "correlation_id": "Correlation ID",
+              "trace_id": "Trace ID",
+              "journey_type": "Journey",
+              "journey_stage": "Failure stage",
+              "failure_category": "Failure category",
+              "http_route": "Route",
+              "http_method": "Method",
+              "http_status": "HTTP status",
+              "duration_ms": "Duration",
+              "outcome": "Outcome"
+            },
+            "excludeByName": {},
+            "indexByName": {}
+          }
+        }
+      ]
     }
   ],
   "links": [
@@ -654,6 +791,11 @@
       "title": "API Health",
       "url": "/d/happy-wallet-api-health?from=${__from}&to=${__to}",
       "targetBlank": false
+    },
+    {
+      "type": "link",
+      "title": "Customer Experience",
+      "url": "/d/happy-wallet-customer-experience?from=${__from}&to=${__to}"
     }
   ]
 }

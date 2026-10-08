@@ -4,6 +4,7 @@ providers:
   - name: Banking API | Observability
     orgId: 1
     folder: Banking | Observability
+    # Target the existing folder identity instead of creating a same-title copy.
     folderUid: bfyyz4nf7mmtcb
     type: file
     disableDeletion: true
