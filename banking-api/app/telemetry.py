@@ -1,4 +1,4 @@
-"""configure *only* the banking API's three telemetry signals.
+"""Configure only the banking API's three telemetry signals.
 
 Telemetry is opt-in (OTEL_ENABLED=true). All exporters send to internal Alloy.
 Avoid logging request bodies, raw paths, HTTP headers, SQL parameters or exceptions.
@@ -139,6 +139,10 @@ def business_span(name):
 
 class PaymentTransaction:
     """Observe the original context manager's exit without changing its semantics."""
+    # Psycopg's connection context decides commit vs rollback from the original
+    # exception tuple. Return its exact result: telemetry must neither suppress
+    # failures nor commit a rejected transaction early. Stored business rejections
+    # intentionally exit cleanly; the endpoint returns their 409 only afterwards.
     def __init__(self, connection):
         self.connection = connection
 

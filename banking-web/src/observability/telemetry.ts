@@ -230,6 +230,8 @@ export function startApiTelemetry(route: ApiRoute, method: string, journey?: Jou
   }, journey?.context ?? ROOT_CONTEXT)
   const headers: Record<string, string> = { 'X-Correlation-ID': correlationId }
   if (currentSession) headers['X-Session-ID'] = currentSession
+  // Propagate this CLIENT span, not the journey root: FastAPI then becomes its
+  // direct SERVER child. Explicit ROOT_CONTEXT also excludes incidental baggage.
   propagator.inject(trace.setSpan(ROOT_CONTEXT, span), headers, {
     set(carrier, key, value) { carrier[key] = value },
   })

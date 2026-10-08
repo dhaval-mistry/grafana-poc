@@ -1,5 +1,6 @@
-// Single OTLP HTTP entry point: the API sends logs, metrics and traces here.
-// No host port 4318 is published for Alloy. Access stays within the Compose network.
+// One OTLP entry point receives both API and browser signals, using their distinct
+// service.name resources. FastAPI uses the private Compose address; the local
+// Vite proxy uses loopback host port 4319. Routing/filtering semantics stay shared.
 otelcol.receiver.otlp "banking" {
   http {
     endpoint = "0.0.0.0:4318"

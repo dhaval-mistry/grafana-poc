@@ -1,4 +1,8 @@
-"""Synthetic banking API entry point. Step 16 adds optional telemetry only."""
+"""Synthetic banking entry point; configure opt-in telemetry before routing.
+
+Middleware order establishes observability context without changing authentication,
+banking rules or transaction boundaries.
+"""
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
