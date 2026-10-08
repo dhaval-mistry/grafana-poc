@@ -1,0 +1,659 @@
+{
+  "uid": "happy-wallet-journey-investigation",
+  "title": "Happy Wallet | Journey Investigation",
+  "description": "Investigate backend requests with safe correlation IDs, failure categories, HTTP metadata, logs and traces.",
+  "tags": [
+    "happy-wallet",
+    "backend-observability"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "refresh": "30s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "correlation_id",
+        "label": "Correlation ID",
+        "type": "textbox",
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "hide": 0,
+        "skipUrlSync": false
+      },
+      {
+        "name": "journey",
+        "label": "Journey",
+        "type": "custom",
+        "query": "login,transfer",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "options": [
+          {
+            "text": "All",
+            "value": "$__all",
+            "selected": true
+          },
+          {
+            "text": "login",
+            "value": "login",
+            "selected": false
+          },
+          {
+            "text": "transfer",
+            "value": "transfer",
+            "selected": false
+          }
+        ],
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "hide": 0
+      },
+      {
+        "name": "failure_category",
+        "label": "Failure category",
+        "type": "custom",
+        "query": "authentication,validation,not_found,insufficient_funds,database,internal",
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "options": [
+          {
+            "text": "All",
+            "value": "$__all",
+            "selected": true
+          },
+          {
+            "text": "authentication",
+            "value": "authentication",
+            "selected": false
+          },
+          {
+            "text": "validation",
+            "value": "validation",
+            "selected": false
+          },
+          {
+            "text": "not_found",
+            "value": "not_found",
+            "selected": false
+          },
+          {
+            "text": "insufficient_funds",
+            "value": "insufficient_funds",
+            "selected": false
+          },
+          {
+            "text": "database",
+            "value": "database",
+            "selected": false
+          },
+          {
+            "text": "internal",
+            "value": "internal",
+            "selected": false
+          }
+        ],
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Start an investigation",
+      "type": "text",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 3
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Enter a **Correlation ID** above, select the relevant time range, then open a **Trace ID** or **View trace** link.\n\n**Empty correlation ID returns no correlated logs or traces.** Recent failures remain visible below. Correlation IDs may group retries; each technical request has its own trace ID. No customer or account information is shown."
+      },
+      "targets": []
+    },
+    {
+      "id": 2,
+      "title": "Requests matching correlation ID",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 24,
+        "h": 7
+      },
+      "description": "An empty textbox deliberately produces no rows. Durations are backend request durations.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "Unavailable",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Trace ID"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open Tempo trace",
+                    "url": "/explore?left=%7B%22datasource%22%3A%22step16-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22${__value.raw}%22%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22${__from}%22%2C%22to%22%3A%22${__to}%22%7D%7D",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Correlation ID"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Investigate correlation ID",
+                    "url": "/d/happy-wallet-journey-investigation?var-correlation_id=${__value.raw}&from=${__from}&to=${__to}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Duration"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ms"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "step16-loki"
+          },
+          "refId": "A",
+          "expr": "{service_name=\"synthetic-banking-api\"} |= \"api_request_completed\" | correlation_id != \"\" | correlation_id = ${correlation_id:doublequote} | line_format `{\"correlation_id\":\"{{.correlation_id}}\",\"trace_id\":\"{{.trace_id}}\",\"http_method\":\"{{.http_method}}\",\"http_route\":\"{{.http_route}}\",\"http_status\":\"{{.http_status}}\",\"duration_ms\":\"{{.duration_ms}}\"}`",
+          "queryType": "range",
+          "maxLines": 500,
+          "editorMode": "code"
+        }
+      ],
+      "datasource": {
+        "type": "loki",
+        "uid": "step16-loki"
+      },
+      "transformations": [
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "Line",
+            "format": "json",
+            "replace": true,
+            "keepTime": true
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(Time.*|correlation_id|trace_id|journey_type|journey_stage|failure_category|http_route|http_method|http_status|duration_ms)$"
+            }
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "targetField": "duration_ms",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "http_status",
+                "destinationType": "number"
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "correlation_id": "Correlation ID",
+              "trace_id": "Trace ID",
+              "journey_type": "Journey",
+              "journey_stage": "Failure stage",
+              "failure_category": "Failure category",
+              "http_route": "Route",
+              "http_method": "Method",
+              "http_status": "HTTP status",
+              "duration_ms": "Duration"
+            },
+            "excludeByName": {},
+            "indexByName": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Recent failed banking journeys",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 10,
+        "w": 24,
+        "h": 9
+      },
+      "description": "Joins failure and completion records by trace ID, never solely by correlation ID. Bounded to 500 records per query; unmatched business failures retain explicit unavailable HTTP fields.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "Unavailable",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Trace ID"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open Tempo trace",
+                    "url": "/explore?left=%7B%22datasource%22%3A%22step16-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22${__value.raw}%22%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22${__from}%22%2C%22to%22%3A%22${__to}%22%7D%7D",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Correlation ID"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Investigate correlation ID",
+                    "url": "/d/happy-wallet-journey-investigation?var-correlation_id=${__value.raw}&from=${__from}&to=${__to}",
+                    "targetBlank": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Duration"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ms"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "step16-loki"
+          },
+          "refId": "A",
+          "expr": "{service_name=\"synthetic-banking-api\"} |= \"business_operation_failed\" | journey_type =~ \"${journey:regex}\" | failure_category =~ \"${failure_category:regex}\" | line_format `{\"correlation_id\":\"{{.correlation_id}}\",\"trace_id\":\"{{.trace_id}}\",\"journey_type\":\"{{.journey_type}}\",\"journey_stage\":\"{{.journey_stage}}\",\"failure_category\":\"{{.failure_category}}\"}`",
+          "queryType": "range",
+          "maxLines": 500,
+          "editorMode": "code"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "step16-loki"
+          },
+          "refId": "B",
+          "expr": "{service_name=\"synthetic-banking-api\"} |= \"api_request_completed\" | http_status >= 400 | http_route =~ \"/api/v1/auth/token|/api/v1/accounts/lookup|/api/v1/payments\" | __error__ = \"\" | line_format `{\"trace_id\":\"{{.trace_id}}\",\"http_method\":\"{{.http_method}}\",\"http_route\":\"{{.http_route}}\",\"http_status\":\"{{.http_status}}\",\"duration_ms\":\"{{.duration_ms}}\"}`",
+          "queryType": "range",
+          "maxLines": 500,
+          "editorMode": "code"
+        }
+      ],
+      "datasource": {
+        "type": "loki",
+        "uid": "step16-loki"
+      },
+      "transformations": [
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "Line",
+            "format": "json",
+            "replace": true,
+            "keepTime": true
+          }
+        },
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "trace_id",
+            "mode": "outerTabular"
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "include",
+            "match": "all",
+            "filters": [
+              {
+                "fieldName": "failure_category",
+                "config": {
+                  "id": "isNotNull",
+                  "options": {}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(Time.*|correlation_id|trace_id|journey_type|journey_stage|failure_category|http_route|http_method|http_status|duration_ms)$"
+            }
+          }
+        },
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "targetField": "duration_ms",
+                "destinationType": "number"
+              },
+              {
+                "targetField": "http_status",
+                "destinationType": "number"
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "correlation_id": "Correlation ID",
+              "trace_id": "Trace ID",
+              "journey_type": "Journey",
+              "journey_stage": "Failure stage",
+              "failure_category": "Failure category",
+              "http_route": "Route",
+              "http_method": "Method",
+              "http_status": "HTTP status",
+              "duration_ms": "Duration"
+            },
+            "excludeByName": {},
+            "indexByName": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Reported failure events",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 19,
+        "w": 24,
+        "h": 6
+      },
+      "description": "Failure log events per interval. Retried rejected outcomes may emit another event; these are not unique-transfer execution counts.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "step16-loki"
+          },
+          "refId": "A",
+          "expr": "sum by (journey_type,failure_category) (count_over_time({service_name=\"synthetic-banking-api\"} |= \"business_operation_failed\" | journey_type =~ \"${journey:regex}\" | failure_category =~ \"${failure_category:regex}\" | keep journey_type,failure_category [$__interval]))",
+          "queryType": "range",
+          "maxLines": 500,
+          "editorMode": "code",
+          "legendFormat": "{{journey_type}} / {{failure_category}}"
+        }
+      ],
+      "datasource": {
+        "type": "loki",
+        "uid": "step16-loki"
+      }
+    },
+    {
+      "id": 5,
+      "title": "Correlated safe Loki logs",
+      "type": "logs",
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 12,
+        "h": 10
+      },
+      "description": "Expand a record and select View trace. Empty correlation ID returns no records.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "step16-loki"
+          },
+          "refId": "A",
+          "expr": "{service_name=\"synthetic-banking-api\"} | correlation_id != \"\" | correlation_id = ${correlation_id:doublequote}",
+          "queryType": "range",
+          "maxLines": 500,
+          "editorMode": "code"
+        }
+      ],
+      "datasource": {
+        "type": "loki",
+        "uid": "step16-loki"
+      }
+    },
+    {
+      "id": 6,
+      "title": "Related distributed traces",
+      "type": "table",
+      "gridPos": {
+        "x": 12,
+        "y": 25,
+        "w": 12,
+        "h": 10
+      },
+      "description": "Click a trace ID to inspect server, business and PostgreSQL spans. Empty correlation ID returns no traces.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "tempo",
+            "uid": "step16-tempo"
+          },
+          "refId": "A",
+          "query": "{ resource.service.name = \"synthetic-banking-api\" && ((span.correlation_id != \"\" && span.correlation_id = ${correlation_id:doublequote}) || (span.banking.correlation_id != \"\" && span.banking.correlation_id = ${correlation_id:doublequote})) }",
+          "queryType": "traceql",
+          "metricsQueryType": "range",
+          "tableType": "traces",
+          "limit": 50
+        }
+      ],
+      "datasource": {
+        "type": "tempo",
+        "uid": "step16-tempo"
+      }
+    }
+  ],
+  "links": [
+    {
+      "type": "link",
+      "title": "API Health",
+      "url": "/d/happy-wallet-api-health?from=${__from}&to=${__to}",
+      "targetBlank": false
+    }
+  ]
+}

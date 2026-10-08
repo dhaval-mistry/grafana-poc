@@ -1,0 +1,944 @@
+{
+  "uid": "happy-wallet-api-health",
+  "title": "Happy Wallet | API Health",
+  "description": "Backend operational health. Attempts include retries; transfer execution outcomes exclude recognized replays. No browser telemetry or banking entity data.",
+  "tags": [
+    "happy-wallet",
+    "backend-observability"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "refresh": "30s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "slow_ms",
+        "label": "Slow server span threshold (ms)",
+        "type": "custom",
+        "query": "25,50,100,250,500,1000",
+        "includeAll": false,
+        "multi": false,
+        "options": [
+          {
+            "text": "25",
+            "value": "25",
+            "selected": false
+          },
+          {
+            "text": "50",
+            "value": "50",
+            "selected": false
+          },
+          {
+            "text": "100",
+            "value": "100",
+            "selected": true
+          },
+          {
+            "text": "250",
+            "value": "250",
+            "selected": false
+          },
+          {
+            "text": "500",
+            "value": "500",
+            "selected": false
+          },
+          {
+            "text": "1000",
+            "value": "1000",
+            "selected": false
+          }
+        ],
+        "current": {
+          "text": "100",
+          "value": "100"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "API requests / second",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 4
+      },
+      "description": "Includes handled and unmatched requests; excludes /health probes.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "sum(rate(banking_api_requests_total{job=\"synthetic-banking-api\",http_route!=\"/health\"}[$__rate_interval]))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      }
+    },
+    {
+      "id": 2,
+      "title": "HTTP 5xx percentage",
+      "type": "stat",
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 8,
+        "h": 4
+      },
+      "description": "0% means traffic with no server errors. No traffic means zero request rate. No rate data means insufficient samples or unavailable telemetry; check freshness.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "No rate data",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "-1": {
+                  "text": "No traffic",
+                  "color": "gray",
+                  "index": 0
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "min": 0,
+          "max": 100,
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "(100 * (sum(rate(banking_api_requests_total{job=\"synthetic-banking-api\",http_route!=\"/health\",http_status=~\"5..\"}[$__rate_interval])) or vector(0)) / (sum(rate(banking_api_requests_total{job=\"synthetic-banking-api\",http_route!=\"/health\"}[$__rate_interval])) > 0)) or (vector(-1) and on() (sum(rate(banking_api_requests_total{job=\"synthetic-banking-api\",http_route!=\"/health\"}[$__rate_interval])) == 0))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      }
+    },
+    {
+      "id": 3,
+      "title": "API metric sample age",
+      "type": "stat",
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 8,
+        "h": 4
+      },
+      "description": "Latest sample age. SDK export interval is 10 seconds. Fresh samples do not prove recent customer traffic.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "Telemetry unavailable",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 30
+              },
+              {
+                "color": "red",
+                "value": 60
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "time() - max(timestamp(banking_api_requests_total{job=\"synthetic-banking-api\"}))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      }
+    },
+    {
+      "id": 4,
+      "title": "API latency",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 7
+      },
+      "description": "Bucket estimates; sparse or zero traffic can produce gaps. Excludes /health.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "histogram_quantile(0.5,sum by (le)(rate(banking_api_duration_seconds_bucket{job=\"synthetic-banking-api\",http_route!=\"/health\"}[$__rate_interval])))",
+          "instant": false,
+          "range": true,
+          "editorMode": "code",
+          "legendFormat": "P50"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "B",
+          "expr": "histogram_quantile(0.95,sum by (le)(rate(banking_api_duration_seconds_bucket{job=\"synthetic-banking-api\",http_route!=\"/health\"}[$__rate_interval])))",
+          "instant": false,
+          "range": true,
+          "editorMode": "code",
+          "legendFormat": "P95"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "C",
+          "expr": "histogram_quantile(0.99,sum by (le)(rate(banking_api_duration_seconds_bucket{job=\"synthetic-banking-api\",http_route!=\"/health\"}[$__rate_interval])))",
+          "instant": false,
+          "range": true,
+          "editorMode": "code",
+          "legendFormat": "P99"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      }
+    },
+    {
+      "id": 5,
+      "title": "Login outcomes",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 11,
+        "w": 12,
+        "h": 5
+      },
+      "description": "Estimated changes over the selected range, not audit counts. Attempts include retries; transfer execution outcomes exclude recognized replays. Missing series show Not observed.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "sum(increase(banking_login_attempts_total{job=\"synthetic-banking-api\"}[$__range]))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code",
+          "legendFormat": "Attempts"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "B",
+          "expr": "sum(increase(banking_login_success_total{job=\"synthetic-banking-api\"}[$__range]))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code",
+          "legendFormat": "Successes"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "C",
+          "expr": "sum(increase(banking_login_failure_total{job=\"synthetic-banking-api\"}[$__range]))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code",
+          "legendFormat": "Failures"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      }
+    },
+    {
+      "id": 6,
+      "title": "Transfer outcomes",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 11,
+        "w": 12,
+        "h": 5
+      },
+      "description": "Estimated changes over the selected range, not audit counts. Attempts include retries; transfer execution outcomes exclude recognized replays. Missing series show Not observed.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "sum(increase(banking_transfer_attempts_total{job=\"synthetic-banking-api\"}[$__range]))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code",
+          "legendFormat": "Attempts"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "B",
+          "expr": "sum(increase(banking_transfer_success_total{job=\"synthetic-banking-api\"}[$__range]))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code",
+          "legendFormat": "Successful executions"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "C",
+          "expr": "sum(increase(banking_transfer_failure_total{job=\"synthetic-banking-api\"}[$__range]))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code",
+          "legendFormat": "Failed executions"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      }
+    },
+    {
+      "id": 7,
+      "title": "Login and payment duration",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 7
+      },
+      "description": "Backend request duration including replays, not an entire browser journey.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "histogram_quantile(0.95,sum by (le)(rate(banking_login_duration_seconds_bucket{job=\"synthetic-banking-api\"}[$__rate_interval])))",
+          "instant": false,
+          "range": true,
+          "editorMode": "code",
+          "legendFormat": "Login P95"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "B",
+          "expr": "histogram_quantile(0.95,sum by (le)(rate(banking_payment_duration_seconds_bucket{job=\"synthetic-banking-api\"}[$__rate_interval])))",
+          "instant": false,
+          "range": true,
+          "editorMode": "code",
+          "legendFormat": "Payment P95"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "C",
+          "expr": "sum(rate(banking_payment_duration_seconds_sum{job=\"synthetic-banking-api\"}[$__rate_interval]))/sum(rate(banking_payment_duration_seconds_count{job=\"synthetic-banking-api\"}[$__rate_interval]))",
+          "instant": false,
+          "range": true,
+          "editorMode": "code",
+          "legendFormat": "Payment mean"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      }
+    },
+    {
+      "id": 8,
+      "title": "Business failures by category",
+      "type": "table",
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 7
+      },
+      "description": "Transfer failures exclude recognized replay outcomes. Recipient failures are separate from payment attempts. Categories first appear after being observed.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "sum by (failure_type)(increase(banking_login_failure_total{job=\"synthetic-banking-api\"}[$__range]))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code",
+          "legendFormat": "Login / {{failure_type}}",
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "B",
+          "expr": "sum by (failure_type)(increase(banking_transfer_failure_total{job=\"synthetic-banking-api\"}[$__range]))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code",
+          "legendFormat": "Transfer / {{failure_type}}",
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "C",
+          "expr": "sum by (failure_type)(increase(banking_recipient_verification_failure_total{job=\"synthetic-banking-api\"}[$__range]))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code",
+          "legendFormat": "Recipient verification / {{failure_type}}",
+          "format": "time_series"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      },
+      "transformations": [
+        {
+          "id": "seriesToRows",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Metric": "Operation / failure category",
+              "Value": "Failures in range"
+            },
+            "indexByName": {}
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Requests by safe route and status",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 23,
+        "w": 12,
+        "h": 7
+      },
+      "description": "Requests/second by safe route template; UNMATCHED hides arbitrary paths.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "reqps"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "sum by (http_route,http_status)(rate(banking_api_requests_total{job=\"synthetic-banking-api\",http_route!=\"/health\"}[$__rate_interval]))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code",
+          "format": "table"
+        }
+      ],
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      }
+    },
+    {
+      "id": 10,
+      "title": "PostgreSQL span latency",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 23,
+        "w": 12,
+        "h": 7
+      },
+      "description": "P50/P95/P99 queried directly from Tempo. SQL text and parameters are not shown.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "tempo",
+            "uid": "step16-tempo"
+          },
+          "refId": "A",
+          "query": "{ resource.service.name = \"synthetic-banking-api\" && span.db.system = \"postgresql\" } | quantile_over_time(span:duration, .50, .95, .99)",
+          "queryType": "traceql",
+          "metricsQueryType": "range",
+          "tableType": "traces",
+          "limit": 50,
+          "step": "1m"
+        }
+      ],
+      "datasource": {
+        "type": "tempo",
+        "uid": "step16-tempo"
+      }
+    },
+    {
+      "id": 11,
+      "title": "Slow backend traces",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 30,
+        "w": 24,
+        "h": 8
+      },
+      "description": "Up to 50 matching traces above the threshold, not a global slowest-N ranking. No rows means no matches in the chosen range.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "tempo",
+            "uid": "step16-tempo"
+          },
+          "refId": "A",
+          "query": "{ resource.service.name = \"synthetic-banking-api\" && span:kind = server && span:duration > ${slow_ms}ms }",
+          "queryType": "traceql",
+          "metricsQueryType": "range",
+          "tableType": "traces",
+          "limit": 50
+        }
+      ],
+      "datasource": {
+        "type": "tempo",
+        "uid": "step16-tempo"
+      }
+    },
+    {
+      "id": 12,
+      "title": "Recent backend failure events",
+      "type": "logs",
+      "gridPos": {
+        "x": 0,
+        "y": 38,
+        "w": 24,
+        "h": 9
+      },
+      "description": "Business failures and server-error completion records. One failed request can have both events.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Not observed",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "enableLogDetails": true,
+        "sortOrder": "Descending",
+        "dedupStrategy": "none"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "step16-loki"
+          },
+          "refId": "A",
+          "expr": "{service_name=\"synthetic-banking-api\"} |= \"business_operation_failed\"",
+          "queryType": "range",
+          "maxLines": 500,
+          "editorMode": "code"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "step16-loki"
+          },
+          "refId": "B",
+          "expr": "{service_name=\"synthetic-banking-api\"} |= \"api_request_completed\" | http_status >= 500 | __error__ = \"\"",
+          "queryType": "range",
+          "maxLines": 500,
+          "editorMode": "code"
+        }
+      ],
+      "datasource": {
+        "type": "loki",
+        "uid": "step16-loki"
+      }
+    }
+  ],
+  "links": [
+    {
+      "type": "link",
+      "title": "Journey Investigation",
+      "url": "/d/happy-wallet-journey-investigation?from=${__from}&to=${__to}",
+      "targetBlank": false
+    }
+  ]
+}

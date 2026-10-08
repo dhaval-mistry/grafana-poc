@@ -14,6 +14,15 @@ datasources:
     access: proxy
     url: http://tempo:3200
     editable: false
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: step16-loki
+        customQuery: true
+        query: '{service_name="synthetic-banking-api"} | trace_id = "$${__trace.traceId}"'
+        spanStartTimeShift: '-1m'
+        spanEndTimeShift: '1m'
+        filterByTraceID: false
+        filterBySpanID: false
   - name: Step16 Loki
     uid: step16-loki
     type: loki
@@ -22,9 +31,10 @@ datasources:
     editable: false
     jsonData:
       derivedFields:
-        # Trace IDs appear as a log attribute; click through to Tempo.
+        # Match the structured metadata key, not the literal event-name body.
         - name: Trace ID
-          matcherRegex: '([0-9a-f]{32})'
+          matcherType: label
+          matcherRegex: '^trace_id$'
           datasourceUid: step16-tempo
           url: '$${__value.raw}'
           urlDisplayLabel: View trace
