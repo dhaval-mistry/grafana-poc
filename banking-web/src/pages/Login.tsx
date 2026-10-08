@@ -16,6 +16,7 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet'
 import LoginIcon from '@mui/icons-material/Login'
 
 import { apiEndpoints } from '../api/endpoints'
+import { completeJourney, failJourney, failureForStatus, startJourney } from '../observability/telemetry'
 
 import {
     ApiError,
@@ -55,6 +56,8 @@ export default function Login({
 
 
     async function handleLogin() {
+        // Each sign-in attempt is independent of any later authenticated journey.
+        const journey = startJourney('login')
         setErrorMessage('')
         setIsLoading(true)
 
@@ -80,13 +83,15 @@ export default function Login({
                     apiEndpoints
                         .auth.login,
 
-                    formData
+                    formData,
+                    journey
                 )
 
 
             if (
                 !data.access_token
             ) {
+                failJourney(journey, 'internal')
                 setErrorMessage(
                     'Login succeeded, but no access token was returned.'
                 )
@@ -98,7 +103,9 @@ export default function Login({
             onLogin(
                 data.access_token
             )
+            completeJourney(journey)
         } catch (error) {
+            failJourney(journey, error instanceof ApiError ? failureForStatus(error.status) : 'internal')
             console.error(
                 'Login request failed.'
             )

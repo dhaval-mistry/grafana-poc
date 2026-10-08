@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import NavigationTelemetry from './observability/NavigationTelemetry'
+import { clearObservabilitySession, restoreAuthenticatedSession, startAuthenticatedSession } from './observability/telemetry'
 
 import {
   AppBar,
@@ -335,12 +337,20 @@ function BankingLayout({
 function AppContent() {
   const [authToken, setAuthToken] =
     useState<string | null>(() => {
-      return sessionStorage.getItem(
+      const token = sessionStorage.getItem(
         'happy-wallet-token'
       )
+      // Restore observability before child pages issue their first API calls.
+      restoreAuthenticatedSession(token !== null)
+      return token
     })
 
   const isAuthenticated = authToken !== null
+
+  useEffect(() => {
+    // This observes auth state; it never participates in authentication decisions.
+    restoreAuthenticatedSession(isAuthenticated)
+  }, [isAuthenticated])
 
   function handleLogin(token: string) {
     sessionStorage.setItem(
@@ -348,6 +358,7 @@ function AppContent() {
       token
     )
 
+    startAuthenticatedSession()
     setAuthToken(token)
   }
 
@@ -356,6 +367,7 @@ function AppContent() {
       'happy-wallet-token'
     )
 
+    clearObservabilitySession()
     setAuthToken(null)
   }
   
@@ -437,6 +449,7 @@ function AppContent() {
 export default function App() {
   return (
     <BrowserRouter>
+      <NavigationTelemetry />
       <AppContent />
     </BrowserRouter>
   )

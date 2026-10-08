@@ -1,3 +1,7 @@
+import { config } from '../config'
+import { safeApiRoute, startApiTelemetry } from '../observability/telemetry'
+import type { Journey } from '../observability/telemetry'
+
 export class ApiError extends Error {
     status: number
 
@@ -17,10 +21,36 @@ type ApiRequestOptions =
     Omit<RequestInit, 'headers'> & {
         headers?: Record<string, string>
         authenticated?: boolean
+        journey?: Journey
     }
 
 
 async function apiRequest<T>(
+    url: string,
+    options: ApiRequestOptions = {}
+): Promise<T> {
+    const { journey, ...bankingOptions } = options
+    const route = safeApiRoute(url, config.apiBaseUrl)
+    const observation = route
+        ? startApiTelemetry(route, options.method ?? 'GET', journey)
+        : undefined
+    try {
+        const data = await performApiRequest<T>(url, {
+            ...bankingOptions,
+            headers: { ...options.headers, ...observation?.headers },
+        })
+        // Successful responses are all 2xx; only status class is observed.
+        observation?.finish(200, false)
+        return data
+    } catch (error) {
+        observation?.finish(error instanceof ApiError ? error.status : 0, true)
+        throw error
+    }
+}
+
+// Keep authentication, bodies, response parsing and existing error messages in
+// the original request implementation. Telemetry never sees any payload/token.
+async function performApiRequest<T>(
     url: string,
     options: ApiRequestOptions = {}
 ): Promise<T> {
@@ -135,12 +165,15 @@ export function apiPostJson<T>(
     url: string,
     body: unknown,
     headers:
-        Record<string, string> = {}
+        Record<string, string> = {},
+    journey?: Journey
 ): Promise<T> {
     return apiRequest<T>(
         url,
         {
             method: 'POST',
+
+            journey,
 
             headers: {
                 'Content-Type':
@@ -159,7 +192,8 @@ export function apiPostJson<T>(
 
 export function apiPostForm<T>(
     url: string,
-    body: URLSearchParams
+    body: URLSearchParams,
+    journey?: Journey
 ): Promise<T> {
     return apiRequest<T>(
         url,
@@ -167,6 +201,8 @@ export function apiPostForm<T>(
             method: 'POST',
 
             authenticated: false,
+
+            journey,
 
             headers: {
                 'Content-Type':

@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { cancelJourney, completeJourney, failJourney, failureForStatus, recipientVerificationFailed, setJourneyStage, startJourney } from '../observability/telemetry'
+import type { Journey } from '../observability/telemetry'
 
 import {
     Alert,
@@ -71,6 +73,19 @@ type PaymentResponse = {
 }
 
 export default function Transfer() {
+    const transferJourney = useRef<Journey | undefined>(undefined)
+
+    useEffect(() => {
+        const reference = transferJourney
+        return () => cancelJourney(reference.current)
+    }, [])
+
+    function beginTransferJourney(hasSource: boolean) {
+        // Source/type changes identify a new journey. Destination/amount edits
+        // keep this context; the existing idempotency reset rules remain intact.
+        cancelJourney(transferJourney.current)
+        transferJourney.current = hasSource ? startJourney('transfer') : undefined
+    }
     const [transferType, setTransferType] =
         useState<TransferType>('my-accounts')
 
@@ -238,6 +253,7 @@ export default function Transfer() {
     function handleTransferTypeChange(
         value: TransferType
     ) {
+        beginTransferJourney(fromAccountId !== '')
         setTransferType(value)
 
         setToAccountId('')
@@ -255,6 +271,9 @@ export default function Transfer() {
         ) {
             return
         }
+
+        const journey = transferJourney.current
+        setJourneyStage(journey, 'recipient_verify')
 
 
         setIsLookingUpRecipient(
@@ -278,7 +297,9 @@ export default function Transfer() {
                     {
                         account_number:
                             recipientAccountNumber.trim(),
-                    }
+                    },
+                    {},
+                    journey
                 )
 
 
@@ -339,6 +360,7 @@ export default function Transfer() {
 
             resetPaymentAttempt()
         } catch (error) {
+            recipientVerificationFailed(journey, error instanceof ApiError ? failureForStatus(error.status) : 'internal')
             console.error(
                 'Recipient lookup failed.'
             )
@@ -377,6 +399,8 @@ export default function Transfer() {
             return
         }
 
+        setJourneyStage(transferJourney.current, 'review')
+
         if (!idempotencyKey) {
             setIdempotencyKey(
                 crypto.randomUUID()
@@ -396,6 +420,9 @@ export default function Transfer() {
         ) {
             return
         }
+
+        const journey = transferJourney.current
+        setJourneyStage(journey, 'submit')
 
 
         setIsSubmitting(true)
@@ -427,8 +454,13 @@ export default function Transfer() {
                     {
                         'Idempotency-Key':
                             idempotencyKey,
-                    }
+                    },
+                    journey
                 )
+
+            // Observe only the safe business outcome, never payment fields.
+            if (journey) completeJourney(journey)
+            if (transferJourney.current === journey) transferJourney.current = undefined
 
 
             const destinationName =
@@ -479,6 +511,9 @@ export default function Transfer() {
             */
             await loadAccounts()
         } catch (error) {
+            // HTTP 409 has several possible causes; do not infer insufficient
+            // funds from it or inspect an error body. Backend spans are definitive.
+            if (journey) failJourney(journey, error instanceof ApiError ? failureForStatus(error.status) : 'internal', true)
             console.error(
                 'Payment request failed.'
             )
@@ -667,6 +702,7 @@ export default function Transfer() {
                                     value={fromAccountId}
                                     label="From Account"
                                     onChange={(event) => {
+                                        beginTransferJourney(event.target.value !== '')
                                         setFromAccountId(
                                             event.target.value
                                         )

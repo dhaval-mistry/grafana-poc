@@ -20,6 +20,8 @@ services:
       - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
     ports:
       - "127.0.0.1:12345:12345"
+      # The local Vite server relays same-origin browser OTLP to this receiver.
+      - "127.0.0.1:4319:4318"
     restart: unless-stopped
 
   prometheus:
