@@ -1,10 +1,15 @@
 # Happy Wallet backend observability in Grafana
 
-All three banking dashboards are provisioned into **Banking | Observability**:
+All four banking dashboards are provisioned into **Banking | Observability**:
 
 - **Happy Wallet | Journey Investigation** (`happy-wallet-journey-investigation`): correlation search, request details, recent failed journeys, safe logs and related traces.
 - **Happy Wallet | API Health** (`happy-wallet-api-health`): request rate, HTTP 5xx percentage, telemetry freshness, API latency, business outcomes, business duration, failure categories, route/status rates, PostgreSQL span latency, slow traces and recent failures.
 - **Banking API | Observability** (`step16-banking-api`): the original banking dashboard, retaining its existing live UID.
+- **Happy Wallet | Customer Experience** (`happy-wallet-customer-experience`): browser journey events, API/navigation timing and JavaScript failures.
+
+Current architecture: [observability tutorial](../observability/README.md).
+The records below include historical checks; final manual acceptance belongs in
+[manual E2E validation](manual-e2e-validation.md).
 
 The provider is named **Banking API | Observability**. Datasource display names
 are **Banking API | Observability | Prometheus**, **Banking API | Observability | Loki**,

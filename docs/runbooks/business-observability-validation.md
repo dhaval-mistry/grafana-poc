@@ -1,5 +1,8 @@
 # Business observability validation
 
+Implementation overview: [FastAPI](../../banking-api/README.md) and
+[observability](../observability/README.md). Commands run from the repository root.
+
 Run PowerShell from `C:\code\grafana-poc`. These checks use synthetic customers.
 The successful-transfer check moves $1 between Alex's accounts. The insufficient-funds
 check stores a rejected payment without moving funds. Replays create no additional

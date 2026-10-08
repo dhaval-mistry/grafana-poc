@@ -1,5 +1,8 @@
 # Step 4: React observability
 
+Current implementation: [frontend README](../../banking-web/README.md).
+Final acceptance: [manual E2E validation](manual-e2e-validation.md).
+
 The frontend service is `happy-wallet-web`. Existing backend telemetry, banking
 rules, authentication, database schema and Grafana dashboards remain unchanged.
 Frontend signals reuse Alloy's existing OTLP receiver and exporters.
@@ -288,9 +291,9 @@ configuration validation passed, and an OPTIONS preflight returned HTTP 200 with
 519 kB minified main chunk (about 161 kB gzip), triggering Vite's size warning;
 code splitting can be considered separately.
 
-Browser UI automation is unavailable in this session. Successful UI transfer,
-browser error-event export and the browser Network privacy check remain manual
-acceptance steps above. No frontend dashboard integration, Web Vitals, session
-replay, console capture, public collector exposure or authentication changes are
-included. Future dashboard work should keep frontend action counts distinct from
-backend financial execution counters.
+Successful UI transfer, browser error-event export and Network privacy inspection
+are manual acceptance steps. UI automation is intentionally excluded from this POC.
+The final Grafana browser panels are described in the observability tutorial;
+frontend action counts remain distinct from backend financial execution counters.
+Web Vitals, session replay, console capture and public collector deployment are
+not included.
