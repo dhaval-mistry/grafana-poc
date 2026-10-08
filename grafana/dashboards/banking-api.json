@@ -1,5 +1,5 @@
 {
-  "uid": "banking-api-observability",
+  "uid": "step16-banking-api",
   "title": "Banking API | Observability",
   "description": "Read-only observability dashboard. Choose one correlation ID in the textbox; open its trace_id in Explore / Tempo.",
   "tags": [

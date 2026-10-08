@@ -1,4 +1,4 @@
-# Step 16 is additive: run with -f compose.yaml -f compose.step16.yaml.
+# Observability is additive: run with -f compose.yaml -f compose.observability.yaml.
 # Named volumes, the original Postgres database and existing dashboards are preserved.
 services:
   banking-api:
@@ -33,9 +33,9 @@ services:
       - prometheus-data:/prometheus
 
   grafana:
-    # Only a new named datasource file and dashboard are mounted; existing UI
-    # dashboards live in grafana-data and are not deleted by this overlay.
+    # Banking dashboards are provisioned into Banking | Observability.
+    # Existing Grafana data remains in grafana-data.
     volumes:
-      - ./grafana/provisioning/datasources/step16.yaml:/etc/grafana/provisioning/datasources/step16.yaml:ro
-      - ./grafana/provisioning/dashboards/step16.yaml:/etc/grafana/provisioning/dashboards/step16.yaml:ro
-      - ./grafana/dashboards:/var/lib/grafana/step16-dashboards:ro
+      - ./grafana/provisioning/datasources/banking-api-observability.yaml:/etc/grafana/provisioning/datasources/banking-api-observability.yaml:ro
+      - ./grafana/provisioning/dashboards/banking-api-observability.yaml:/etc/grafana/provisioning/dashboards/banking-api-observability.yaml:ro
+      - ./grafana/dashboards:/var/lib/grafana/banking-api-observability-dashboards:ro

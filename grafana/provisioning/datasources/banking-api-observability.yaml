@@ -1,14 +1,23 @@
-# New, distinct names avoid intentionally replacing existing UI-created sources.
+# Stable datasource UIDs preserve existing dashboard and Explore links.
 apiVersion: 1
-datasources:
+# Provisioning identifies existing sources by name. Recreate only these owned
+# sources with the same UIDs when migrating their display names.
+deleteDatasources:
   - name: Step16 Prometheus
+    orgId: 1
+  - name: Step16 Tempo
+    orgId: 1
+  - name: Step16 Loki
+    orgId: 1
+datasources:
+  - name: Banking API | Observability | Prometheus
     uid: step16-prom
     type: prometheus
     access: proxy
     url: http://prometheus:9090
     isDefault: false
     editable: false
-  - name: Step16 Tempo
+  - name: Banking API | Observability | Tempo
     uid: step16-tempo
     type: tempo
     access: proxy
@@ -23,7 +32,7 @@ datasources:
         spanEndTimeShift: '1m'
         filterByTraceID: false
         filterBySpanID: false
-  - name: Step16 Loki
+  - name: Banking API | Observability | Loki
     uid: step16-loki
     type: loki
     access: proxy

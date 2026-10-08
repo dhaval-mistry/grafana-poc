@@ -1,0 +1,12 @@
+# All banking dashboards share the existing observability folder.
+apiVersion: 1
+providers:
+  - name: Banking API | Observability
+    orgId: 1
+    folder: Banking | Observability
+    folderUid: bfyyz4nf7mmtcb
+    type: file
+    disableDeletion: true
+    editable: false
+    options:
+      path: /var/lib/grafana/banking-api-observability-dashboards
