@@ -158,7 +158,7 @@ export default function Accounts() {
                 <Stack
                     direction="row"
                     spacing={2}
-                    alignItems="center"
+                    sx={{ alignItems: 'center' }}
                 >
                     <CircularProgress
                         size={24}
@@ -218,8 +218,7 @@ export default function Accounts() {
                                             >
                                                 <Stack
                                                     direction="row"
-                                                    justifyContent="space-between"
-                                                    alignItems="center"
+                                                    sx={{ justifyContent: 'space-between', alignItems: 'center' }}
                                                     spacing={
                                                         2
                                                     }

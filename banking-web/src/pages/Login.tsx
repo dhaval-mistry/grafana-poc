@@ -175,8 +175,7 @@ export default function Login({
                         <Stack
                             direction="row"
                             spacing={1.5}
-                            alignItems="center"
-                            justifyContent="center"
+                            sx={{ alignItems: 'center', justifyContent: 'center' }}
                         >
                             <AccountBalanceWalletIcon
                                 color="primary"
@@ -199,7 +198,7 @@ export default function Login({
 
 
                         <Box
-                            textAlign="center"
+                            sx={{ textAlign: 'center' }}
                         >
                             <Typography
                                 variant="h4"

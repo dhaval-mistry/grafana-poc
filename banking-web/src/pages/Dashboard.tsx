@@ -252,6 +252,9 @@ export default function Dashboard() {
       No browser refresh is required.
     */
     useEffect(() => {
+        // Preserve the existing route-triggered load and immediate loading state.
+        // This effect intentionally synchronizes the UI with the banking API.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         loadDashboard()
     }, [
         location.key,
@@ -392,7 +395,7 @@ export default function Dashboard() {
                 <Stack
                     direction="row"
                     spacing={2}
-                    alignItems="center"
+                    sx={{ alignItems: 'center' }}
                 >
                     <CircularProgress
                         size={24}
@@ -663,11 +666,9 @@ export default function Dashboard() {
                                                         xs: 'column',
                                                         sm: 'row',
                                                     }}
-                                                    justifyContent="space-between"
-                                                    alignItems={{
-                                                        xs: 'flex-start',
-                                                        sm: 'center',
-                                                    }}
+                                                    sx={{ justifyContent: 'space-between', alignItems: {
+                                                        xs: 'flex-start', sm: 'center',
+                                                    } }}
                                                     spacing={2}
                                                 >
                                                     <Stack
@@ -680,7 +681,7 @@ export default function Dashboard() {
                                                             spacing={
                                                                 1
                                                             }
-                                                            alignItems="center"
+                                                            sx={{ alignItems: 'center' }}
                                                         >
                                                             <Chip
                                                                 label={

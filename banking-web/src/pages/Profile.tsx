@@ -154,7 +154,7 @@ export default function Profile() {
                 <Stack
                     direction="row"
                     spacing={2}
-                    alignItems="center"
+                    sx={{ alignItems: 'center' }}
                 >
                     <CircularProgress
                         size={24}
@@ -198,13 +198,13 @@ export default function Profile() {
                                             'row',
                                     }}
                                     spacing={3}
-                                    alignItems={{
+                                    sx={{ alignItems: {
                                         xs:
                                             'flex-start',
 
                                         sm:
                                             'center',
-                                    }}
+                                    } }}
                                 >
                                     <Avatar
                                         sx={{

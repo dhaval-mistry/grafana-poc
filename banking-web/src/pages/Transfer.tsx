@@ -619,7 +619,7 @@ export default function Transfer() {
                         <Stack
                             direction="row"
                             spacing={2}
-                            alignItems="center"
+                            sx={{ alignItems: 'center' }}
                         >
                             <CircularProgress size={24} />
 

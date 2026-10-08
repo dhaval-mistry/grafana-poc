@@ -426,7 +426,7 @@ export default function Transactions() {
                             <Stack
                                 direction="row"
                                 spacing={2}
-                                alignItems="center"
+                                sx={{ alignItems: 'center' }}
                             >
                                 <CircularProgress
                                     size={24}
@@ -524,14 +524,13 @@ export default function Transactions() {
                                         sm:
                                             2,
                                     }}
-                                    alignItems={{
+                                    sx={{ alignItems: {
                                         xs:
                                             'flex-start',
 
                                         sm:
                                             'center',
-                                    }}
-                                    sx={{
+                                    },
                                         mt: 0.5,
                                     }}
                                 >
@@ -568,7 +567,7 @@ export default function Transactions() {
                             <Stack
                                 direction="row"
                                 spacing={2}
-                                alignItems="center"
+                                sx={{ alignItems: 'center' }}
                             >
                                 <CircularProgress
                                     size={24}
