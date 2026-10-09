@@ -8,7 +8,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "editable": false,
   "refresh": "30s",
   "time": {
@@ -56,7 +56,7 @@
           "values": false
         },
         "orientation": "vertical",
-        "textMode": "value_and_name",
+        "textMode": "value",
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "center",
@@ -117,7 +117,7 @@
           "values": false
         },
         "orientation": "vertical",
-        "textMode": "value_and_name",
+        "textMode": "value",
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "center",
@@ -189,7 +189,7 @@
           "values": false
         },
         "orientation": "vertical",
-        "textMode": "value_and_name",
+        "textMode": "value",
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "center",
@@ -250,7 +250,7 @@
           "values": false
         },
         "orientation": "vertical",
-        "textMode": "value_and_name",
+        "textMode": "value",
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "center",
@@ -311,7 +311,7 @@
           "values": false
         },
         "orientation": "vertical",
-        "textMode": "value_and_name",
+        "textMode": "value",
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "center",
@@ -383,7 +383,7 @@
           "values": false
         },
         "orientation": "vertical",
-        "textMode": "value_and_name",
+        "textMode": "value",
         "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "center",
