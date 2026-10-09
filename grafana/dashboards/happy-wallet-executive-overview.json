@@ -1,0 +1,412 @@
+{
+  "uid": "happy-wallet-executive-overview",
+  "title": "Happy Wallet | Executive Overview",
+  "description": "Operational business KPIs derived from observability telemetry. These values provide near-real-time operational visibility and are not system-of-record financial reporting.",
+  "tags": [
+    "happy-wallet",
+    "executive-overview"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "refresh": "30s",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Successful Logins",
+      "type": "stat",
+      "description": "Estimated counter increase in the selected dashboard range; fractional values are expected from Prometheus extrapolation. A newly observed counter's first increment may not be measurable. Missing outcome series are treated as zero only when attempt counter growth can be evaluated; absent/insufficient metric data stays unavailable. Each successful login retry counts again; this is not a unique-user count.",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 2,
+          "noValue": "No metric data",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "vertical",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "text": {
+          "titleSize": 18,
+          "valueSize": 64
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "(sum(increase(banking_login_success_total{job=\"synthetic-banking-api\"}[$__range])) or (0 * sum(increase(banking_login_attempts_total{job=\"synthetic-banking-api\"}[$__range]))))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Failed Logins",
+      "type": "stat",
+      "description": "Estimated counter increase in the selected dashboard range; fractional values are expected from Prometheus extrapolation. A newly observed counter's first increment may not be measurable. Missing outcome series are treated as zero only when attempt counter growth can be evaluated; absent/insufficient metric data stays unavailable. Each failed login retry counts again.",
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 8,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 2,
+          "noValue": "No metric data",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "vertical",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "text": {
+          "titleSize": 18,
+          "valueSize": 64
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "(sum(increase(banking_login_failure_total{job=\"synthetic-banking-api\"}[$__range])) or (0 * sum(increase(banking_login_attempts_total{job=\"synthetic-banking-api\"}[$__range]))))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Login Success Rate",
+      "type": "stat",
+      "description": "Successful login outcomes divided by successful plus failed login outcomes in the selected range. Retries count as separate outcomes. No observed outcomes is distinct from 0% success; missing/insufficient samples show No metric data.",
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 8,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "noValue": "No metric data",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "-1": {
+                  "text": "No observed outcomes",
+                  "color": "gray",
+                  "index": 0
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "vertical",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "text": {
+          "titleSize": 18,
+          "valueSize": 64
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "clamp_max((100 * (sum(increase(banking_login_success_total{job=\"synthetic-banking-api\"}[$__range])) or (0 * sum(increase(banking_login_attempts_total{job=\"synthetic-banking-api\"}[$__range])))) / (((sum(increase(banking_login_success_total{job=\"synthetic-banking-api\"}[$__range])) or (0 * sum(increase(banking_login_attempts_total{job=\"synthetic-banking-api\"}[$__range])))) + (sum(increase(banking_login_failure_total{job=\"synthetic-banking-api\"}[$__range])) or (0 * sum(increase(banking_login_attempts_total{job=\"synthetic-banking-api\"}[$__range]))))) > 0)), 100) or (vector(-1) and on() (((sum(increase(banking_login_success_total{job=\"synthetic-banking-api\"}[$__range])) or (0 * sum(increase(banking_login_attempts_total{job=\"synthetic-banking-api\"}[$__range])))) + (sum(increase(banking_login_failure_total{job=\"synthetic-banking-api\"}[$__range])) or (0 * sum(increase(banking_login_attempts_total{job=\"synthetic-banking-api\"}[$__range]))))) == 0))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Successful Transfer Executions",
+      "type": "stat",
+      "description": "Estimated counter increase in the selected dashboard range; fractional values are expected from Prometheus extrapolation. A newly observed counter's first increment may not be measurable. Missing outcome series are treated as zero only when attempt counter growth can be evaluated; absent/insufficient metric data stays unavailable. Uses backend outcome counters: recognized idempotent replays do not add successful executions. This is an operational estimate, not a ledger count.",
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 8,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 2,
+          "noValue": "No metric data",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "vertical",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "text": {
+          "titleSize": 18,
+          "valueSize": 64
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "(sum(increase(banking_transfer_success_total{job=\"synthetic-banking-api\"}[$__range])) or (0 * sum(increase(banking_transfer_attempts_total{job=\"synthetic-banking-api\"}[$__range]))))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Failed Transfer Executions",
+      "type": "stat",
+      "description": "Estimated counter increase in the selected dashboard range; fractional values are expected from Prometheus extrapolation. A newly observed counter's first increment may not be measurable. Missing outcome series are treated as zero only when attempt counter growth can be evaluated; absent/insufficient metric data stays unavailable. Recognized idempotent replays are excluded. Unrecognized/pre-persistence retry failures may count again; failed validations and stored insufficient-funds rejections count. Recipient lookups are excluded.",
+      "gridPos": {
+        "x": 8,
+        "y": 7,
+        "w": 8,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 2,
+          "noValue": "No metric data",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "vertical",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "text": {
+          "titleSize": 18,
+          "valueSize": 64
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "(sum(increase(banking_transfer_failure_total{job=\"synthetic-banking-api\"}[$__range])) or (0 * sum(increase(banking_transfer_attempts_total{job=\"synthetic-banking-api\"}[$__range]))))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Transfer Success Rate",
+      "type": "stat",
+      "description": "Successful non-replay transfer outcomes divided by successful plus failed non-replay transfer outcomes in the selected range, not payment attempts. Recognized replays are excluded; other retry failures can affect the rate. No observed outcomes and missing metric data have distinct states.",
+      "gridPos": {
+        "x": 16,
+        "y": 7,
+        "w": 8,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "step16-prom"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "noValue": "No metric data",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "-1": {
+                  "text": "No observed outcomes",
+                  "color": "gray",
+                  "index": 0
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "vertical",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": false,
+        "text": {
+          "titleSize": 18,
+          "valueSize": 64
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "step16-prom"
+          },
+          "refId": "A",
+          "expr": "clamp_max((100 * (sum(increase(banking_transfer_success_total{job=\"synthetic-banking-api\"}[$__range])) or (0 * sum(increase(banking_transfer_attempts_total{job=\"synthetic-banking-api\"}[$__range])))) / (((sum(increase(banking_transfer_success_total{job=\"synthetic-banking-api\"}[$__range])) or (0 * sum(increase(banking_transfer_attempts_total{job=\"synthetic-banking-api\"}[$__range])))) + (sum(increase(banking_transfer_failure_total{job=\"synthetic-banking-api\"}[$__range])) or (0 * sum(increase(banking_transfer_attempts_total{job=\"synthetic-banking-api\"}[$__range]))))) > 0)), 100) or (vector(-1) and on() (((sum(increase(banking_transfer_success_total{job=\"synthetic-banking-api\"}[$__range])) or (0 * sum(increase(banking_transfer_attempts_total{job=\"synthetic-banking-api\"}[$__range])))) + (sum(increase(banking_transfer_failure_total{job=\"synthetic-banking-api\"}[$__range])) or (0 * sum(increase(banking_transfer_attempts_total{job=\"synthetic-banking-api\"}[$__range]))))) == 0))",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
+        }
+      ]
+    }
+  ],
+  "links": []
+}
