@@ -14,6 +14,11 @@ def get(base, path, **params):
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('correlation_id')
+parser.add_argument(
+    '--api-only',
+    action='store_true',
+    help='Validate a direct API journey without requiring browser/frontend spans.',
+)
 args = parser.parse_args()
 assert re.fullmatch(r'[A-Za-z0-9._-]{1,128}', args.correlation_id), 'Invalid safe ID'
 now = time.time()
@@ -47,17 +52,42 @@ for trace_id in sorted(trace_ids):
                       'attribute keys:', sorted(a['key'] for a in span.get('attributes', [])),
                       'event count:', len(span.get('events', [])))
     servers = [s for service, s in spans if service == 'synthetic-banking-api' and s.get('kind') == 'SPAN_KIND_SERVER']
-    clients = [s for service, s in spans if service == 'happy-wallet-web' and s.get('name') == 'browser.api.request']
-    roots = [s for service, s in spans if service == 'happy-wallet-web' and s.get('name') in ('browser.login', 'browser.transfer')]
-    assert servers and clients and roots, 'Missing frontend/backend spans'
-    assert all(any(s.get('parentSpanId') == c.get('spanId') for c in clients) for s in servers), 'Server parent differs from frontend CLIENT'
-    assert all(any(c.get('parentSpanId') == r.get('spanId') for r in roots) for c in clients), 'Frontend CLIENT parent differs from journey'
-    print('PASS parent relationship: browser journey -> frontend CLIENT -> FastAPI SERVER')
+    if args.api_only:
+        print('Validation mode: API-only')
+        assert servers, 'Missing FastAPI server span'
+        business_names = {
+            'payment.process',
+            'payment.validate_accounts',
+            'payment.validate_balance',
+            'payment.persist',
+            'payment.commit',
+        }
+        observed_business = {s.get('name') for _, s in spans}
+        assert business_names <= observed_business, 'Missing payment business spans'
+        database_spans = [
+            s for service, s in spans
+            if service == 'synthetic-banking-api'
+            and s.get('kind') == 'SPAN_KIND_CLIENT'
+            and re.fullmatch(r'(?:SELECT|INSERT|UPDATE|COMMIT|ROLLBACK)(?: [a-z_]+)?', s.get('name', ''))
+        ]
+        assert database_spans, 'Missing PostgreSQL client spans'
+        print('PASS FastAPI server span')
+        print('PASS business spans')
+        print('PASS PostgreSQL spans')
+    else:
+        clients = [s for service, s in spans if service == 'happy-wallet-web' and s.get('name') == 'browser.api.request']
+        roots = [s for service, s in spans if service == 'happy-wallet-web' and s.get('name') in ('browser.login', 'browser.transfer')]
+        assert servers and clients and roots, 'Missing frontend/backend spans'
+        print('Validation mode: strict browser journey')
+        assert all(any(s.get('parentSpanId') == c.get('spanId') for c in clients) for s in servers), 'Server parent differs from frontend CLIENT'
+        assert all(any(c.get('parentSpanId') == r.get('spanId') for r in roots) for c in clients), 'Frontend CLIENT parent differs from journey'
+        print('PASS parent relationship: browser journey -> frontend CLIENT -> FastAPI SERVER')
     allowed_keys = {'banking.correlation_id', 'correlation_id', 'session_id', 'journey.type', 'journey.stage',
                     'outcome', 'failure.category', 'http.method', 'http.route', 'http.status_code',
                     'http.request.method', 'http.status_class', 'db.system'}
     for _, span in spans:
         assert {a['key'] for a in span.get('attributes', [])} <= allowed_keys, 'Unexpected span attribute keys'
+        assert not any(a['key'] in ('db.statement', 'db.query', 'db.parameters') for a in span.get('attributes', [])), 'Raw SQL or parameters exposed'
         for attribute in span.get('attributes', []):
             if attribute['key'] in ('correlation_id', 'banking.correlation_id'):
                 assert attribute['value'].get('stringValue') == args.correlation_id, 'Correlation mismatch'
@@ -65,3 +95,6 @@ for trace_id in sorted(trace_ids):
         for event in span.get('events', []):
             assert {a['key'] for a in event.get('attributes', [])} <= allowed_keys, 'Unexpected event attribute keys'
     print('PASS exported span/event attribute keys and empty status descriptions')
+    if args.api_only:
+        print('PASS correlation propagation')
+        print('PASS privacy allowlist')

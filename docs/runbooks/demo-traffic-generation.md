@@ -76,10 +76,18 @@ Run the existing validators; they are not modified by this tool:
 Copy a fresh correlation ID printed for a request and inspect its distributed journey:
 
 ```powershell
+.venv-admin\Scripts\python.exe scripts\inspect-manual-journey.py <correlation-id> --api-only
+```
+
+The generator calls the API directly, so it has no browser or frontend CLIENT spans. Use `--api-only` for those journeys. This mode requires the FastAPI SERVER span, payment business spans (`payment.process` through `payment.commit`), PostgreSQL client spans, correlation propagation, and the privacy allowlist.
+
+For a manually generated React journey, omit `--api-only`:
+
+```powershell
 .venv-admin\Scripts\python.exe scripts\inspect-manual-journey.py <correlation-id>
 ```
 
-The inspector searches the current Loki retention window (one day). It may report no evidence if the ID is too old or the services were restarted with cleared telemetry volumes.
+The default remains strict and requires the browser journey → frontend CLIENT → FastAPI SERVER parent chain before checking the downstream business and PostgreSQL spans. The inspector searches the current Loki retention window (one day). It may report no evidence if the ID is too old or the services were restarted with cleared telemetry volumes.
 
 ## Manual UI activity still required
 
