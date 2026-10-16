@@ -8,123 +8,326 @@
 :root{
   --bg:#f4f7fb; --ink:#10233f; --muted:#5e6f83; --accent:#159a8c;
   --blue:#2e6fad; --amber:#d9902f; --purple:#7458b3;
-  --soft:#eaf7f4; --card:#fff; --line:#dce7f2; --shadow:0 14px 34px rgba(16,35,63,.10);
+  --soft:#eaf7f4; --card:#ffffff; --line:#dce7f2;
+  --shadow:0 12px 30px rgba(16,35,63,.09);
+  --titleH:1.15in; --footerH:.30in;
 }
 *{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--ink)}
+html,body{margin:0;padding:0;background:var(--bg);font-family:Inter,"Segoe UI",Arial,sans-serif;color:var(--ink)}
 body{overflow:hidden}
 .slide{
-  display:none; width:100vw; height:100vh; padding:30px 42px 24px;
+  display:none;
+  width:100vw;height:100vh;
+  padding:26px 42px 20px;
   background:linear-gradient(180deg,#fbfdff 0%,#f3f7fb 100%);
+  position:relative;
 }
-.slide.active{display:flex;flex-direction:column}
-.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.22em;color:var(--accent);font-weight:800;margin-bottom:8px}
-h1{font-size:50px;line-height:1.04;margin:0}
-h2{font-size:38px;line-height:1.08;margin:0}
-h3{font-size:21px;margin:0 0 8px}
-.subtitle{font-size:20px;line-height:1.38;color:var(--muted);margin-top:12px;max-width:1100px}
-.body{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center}
-.footer{display:flex;justify-content:space-between;align-items:center;color:#7b8999;font-size:14px;margin-top:12px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:22px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.hero{display:grid;grid-template-columns:1.25fr .75fr;gap:28px;align-items:center}
-.hero-copy p{font-size:23px;color:var(--muted);line-height:1.45;margin:16px 0}
-.tag{display:inline-block;margin:6px 8px 0 0;padding:8px 13px;border-radius:999px;background:#e8f6f3;color:#0f756b;font-size:14px;font-weight:700}
-.callout{background:#eaf7f4;border:1px solid #bee5dc;border-radius:18px;padding:16px 20px;color:#0e5f57;font-size:18px;line-height:1.42}
-.stat{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:var(--shadow)}
-.stat .num{font-size:26px;font-weight:800}
-.stat .label{font-size:15px;color:var(--muted);margin-top:6px}
-ul{margin:9px 0 0 22px;padding:0}
-li{font-size:18px;line-height:1.35;color:var(--muted);margin:7px 0}
-.diagram{display:flex;align-items:center;justify-content:center;flex:1;min-height:0}
-.diagram img{display:block;max-width:100%;max-height:calc(100vh - 170px);object-fit:contain;border-radius:16px;box-shadow:var(--shadow);margin:0 auto;background:#fff}
-.caption{text-align:center;font-size:14px;color:#718198;margin-top:7px}
-.pill{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:7px 12px;font-size:12px;font-weight:800}
+.slide.active{display:grid;grid-template-rows:auto 1fr auto;row-gap:10px}
+.slide-head{min-height:82px;display:flex;flex-direction:column;justify-content:flex-start;position:relative;z-index:2}
+.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.22em;color:var(--accent);font-weight:800;margin-bottom:7px}
+h1,h2,h3,p{overflow-wrap:break-word}
+h1{font-size:48px;line-height:1.03;margin:0}
+h2{font-size:37px;line-height:1.08;margin:0;max-width:1180px}
+h3{font-size:20px;line-height:1.18;margin:0 0 8px}
+.subtitle{font-size:19px;line-height:1.38;color:var(--muted);margin-top:8px;max-width:1120px}
+.body{min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
+.footer{height:24px;display:flex;justify-content:space-between;align-items:flex-end;color:#7b8999;font-size:12.5px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:18px;min-width:0;overflow:hidden}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;min-height:0}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;min-height:0}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;min-height:0}
+.hero{display:grid;grid-template-columns:1.28fr .72fr;gap:28px;align-items:center;height:100%}
+.hero-copy{min-width:0}
+.hero-copy p{font-size:21px;color:var(--muted);line-height:1.42;margin:15px 0}
+.prepared-by{
+  position:absolute;
+  right:42px;
+  bottom:48px;
+  width:335px;
+  padding:16px 18px;
+}
+.prepared-by h3{font-size:17px}
+.prepared-by p{font-size:20px;color:var(--muted);line-height:1.3;margin:4px 0 0}
+.tag{display:inline-block;margin:6px 7px 0 0;padding:7px 12px;border-radius:999px;background:#e8f6f3;color:#0f756b;font-size:13px;font-weight:700}
+.callout{background:#eaf7f4;border:1px solid #bee5dc;border-radius:16px;padding:14px 18px;color:#0e5f57;font-size:20px;line-height:1.38;overflow:hidden}
+.stat{background:#fff;border:1px solid var(--line);border-radius:17px;padding:18px;box-shadow:var(--shadow);overflow:hidden}
+.stat .num{font-size:25px;font-weight:800}
+.stat .label{font-size:20px;line-height:1.34;color:var(--muted);margin-top:6px}
+ul{margin:8px 0 0 20px;padding:0}
+li{font-size:20px;line-height:1.32;color:var(--muted);margin:6px 0}
+.pill{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:6px 11px;font-size:11px;font-weight:800;max-width:100%}
 .p-blue{background:#eaf2fb;color:var(--blue)} .p-teal{background:#e9f7f4;color:var(--accent)}
 .p-amber{background:#fff4e4;color:var(--amber)} .p-purple{background:#f1edfa;color:var(--purple)}
-.kicker{font-size:12px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
-.metricline{display:flex;align-items:center;gap:12px;margin-top:8px}
-.metricline b{font-size:18px;color:var(--ink)}
-.arrow{font-size:28px;color:#a8b5c3}
-.decision-card{padding:18px;min-height:230px}
-.decision-card .q{font-size:17px;font-weight:800;color:var(--ink);line-height:1.3;margin:14px 0}
-.decision-card .small{font-size:14px;color:var(--muted);line-height:1.35}
-.what-when-how{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.wwh{min-height:285px}
-.wwh h3{margin-top:14px;font-size:22px}
-.wwh li{font-size:16px}
-.outcome{margin-top:18px;background:#eaf7f4;border:1px solid #bfe3da;border-radius:16px;padding:15px 20px;font-size:18px;font-weight:700;text-align:center}
-.flow{display:grid;grid-template-columns:1fr 45px 1fr 45px 1fr;align-items:center}
-.flow-card{min-height:290px}
-.flow-card p{font-size:16px;color:var(--muted);line-height:1.4}
-.flow-card .question{font-size:16px;font-weight:800;color:var(--ink);margin-top:16px}
-.privacy .card{min-height:225px}
-.dashboard-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
-.dash-thumb{background:#fff;border:1px solid var(--line);border-radius:16px;padding:8px;box-shadow:var(--shadow)}
-.dash-thumb img{width:100%;height:145px;object-fit:contain;display:block;border-radius:10px;background:#f8fbff}
-.dash-thumb strong{display:block;font-size:13px;margin:7px 3px 2px}
-.dash-thumb span{display:block;color:var(--muted);font-size:11px;line-height:1.3;margin:0 3px 5px}
-.table{display:grid;grid-template-columns:1.15fr 1.6fr 1.6fr 1.4fr;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff;box-shadow:var(--shadow)}
-.th,.td{padding:14px 16px;border-bottom:1px solid var(--line);font-size:14px}
-.th{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#718198;font-weight:800;background:#f7faff}
+.outcome{margin-top:16px;background:#eaf7f4;border:1px solid #bfe3da;border-radius:15px;padding:13px 18px;font-size:20px;line-height:1.28;font-weight:700;text-align:center;overflow:hidden}
+
+/* Strict diagram layout: title zone and diagram zone never overlap. */
+.diagram-body{justify-content:flex-start}
+.diagram-frame{
+  flex:1;min-height:0;
+  display:flex;align-items:center;justify-content:center;
+  padding:2px 8px 0;
+  overflow:hidden;
+}
+.diagram-frame img{
+  display:block;
+  max-width:100%;
+  max-height:100%;
+  width:auto;height:auto;
+  object-fit:contain;
+  margin:0 auto;
+}
+.caption{text-align:center;font-size:16px;line-height:1.32;color:#718198;margin-top:5px}
+
+/* Slide 6 */
+.context-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:10px}
+.context-cards .card{padding:12px 14px;box-shadow:none}
+.context-cards h3{font-size:20px;margin:7px 0 4px}
+.context-cards p{font-size:20px;line-height:1.30;color:var(--muted);margin:0}
+.context-image{
+  flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;padding:0 8px 2px
+}
+.context-image img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;margin:0 auto}
+
+/* Decision slides */
+.decision-card{padding:16px;min-height:185px}
+.decision-card .q{font-size:20px;font-weight:800;color:var(--ink);line-height:1.26;margin:11px 0}
+.decision-card .small{font-size:20px;color:var(--muted);line-height:1.30}
+.dashboard-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+.dash-thumb{background:#fff;border:1px solid var(--line);border-radius:14px;padding:6px;box-shadow:var(--shadow);overflow:hidden}
+.dash-thumb img{width:100%;height:120px;object-fit:contain;display:block;border-radius:9px;background:#f8fbff;margin:0 auto}
+.dash-thumb strong{display:block;font-size:14px;margin:6px 3px 1px}
+.dash-thumb span{display:block;color:var(--muted);font-size:12.5px;line-height:1.3;margin:0 3px 4px}
+.what-when-how{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.wwh{min-height:245px}
+.wwh h3{margin-top:12px;font-size:20px}
+.wwh li{font-size:20px;line-height:1.30}
+.flow{display:grid;grid-template-columns:1fr 32px 1fr 32px 1fr;align-items:center}
+.flow-card{min-height:245px}
+.flow-card p{font-size:20px;color:var(--muted);line-height:1.32}
+.flow-card .question{font-size:20px;line-height:1.28;font-weight:800;color:var(--ink);margin-top:14px}
+.arrow{font-size:24px;color:#a8b5c3;text-align:center}
+.privacy .card{min-height:205px}
+
+/* Slide 11 vertical stack */
+.reuse-layout{
+  display:grid;
+  grid-template-rows:minmax(0,1fr) auto;
+  row-gap:12px;
+  height:100%;
+  min-height:0;
+}
+.reuse-image{
+  min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden
+}
+.reuse-image img{
+  display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;margin:0 auto
+}
+.reuse-note{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px
+}
+.reuse-note .card{padding:11px 13px;box-shadow:none}
+.reuse-note strong{display:block;font-size:16px;color:var(--ink);margin-bottom:3px}
+.reuse-note span{display:block;font-size:20px;line-height:1.28;color:var(--muted)}
+
+.table{display:grid;grid-template-columns:1.15fr 1.6fr 1.6fr 1.4fr;border:1px solid var(--line);border-radius:15px;overflow:hidden;background:#fff;box-shadow:var(--shadow)}
+.th,.td{padding:12px 14px;border-bottom:1px solid var(--line);font-size:20px;line-height:1.28;overflow:hidden}
+.th{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#718198;font-weight:800;background:#f7faff}
 .td{color:var(--muted)}
 .td strong{color:var(--ink)}
 .no-bottom{border-bottom:none}
-.nav{position:fixed;right:18px;top:12px;background:rgba(66,78,94,.76);color:#fff;border-radius:20px;padding:7px 11px;font-size:12px;z-index:100}
-.linkbox{font-size:14px;color:var(--muted);line-height:1.7}
+.linkbox{font-size:20px;color:var(--muted);line-height:1.45}
 .linkbox a{color:#156f9a;text-decoration:none}
-@media(max-width:900px){
-  h1{font-size:36px} h2{font-size:30px}
-  .grid4,.dashboard-grid{grid-template-columns:1fr 1fr}
+.nav{position:fixed;right:16px;top:10px;background:rgba(66,78,94,.76);color:#fff;border-radius:18px;padding:6px 10px;font-size:11px;z-index:100}
+
+@media(max-width:1000px){
+  h1{font-size:40px} h2{font-size:31px}
+  .hero-copy p{font-size:18px}
+  .prepared-by{width:300px}
 }
+
+/* FINAL typography/layout refinement */
+
+/* Slide 7: move decision boxes up and make dashboard screenshots more visible. */
+.slide:nth-of-type(7) .body{
+  justify-content:flex-start;
+  padding-top:0;
+}
+.slide:nth-of-type(7) .grid4{
+  margin-top:0;
+  gap:12px;
+}
+.slide:nth-of-type(7) .decision-card{
+  min-height:235px;
+  padding:15px 16px;
+}
+.slide:nth-of-type(7) .dashboard-grid{
+  margin-top:8px;
+  gap:10px;
+}
+.slide:nth-of-type(7) .dash-thumb{
+  padding:6px;
+}
+.slide:nth-of-type(7) .dash-thumb img{
+  height:185px;
+}
+
+/* Slide 8: preserve three-column executive structure with readable 20px content. */
+.slide:nth-of-type(8) .body{
+  justify-content:flex-start;
+  padding-top:6px;
+}
+.slide:nth-of-type(8) .wwh{
+  min-height:270px;
+  padding:18px;
+}
+
+/* Slide 11: reserve more height for 20px content boxes and slightly reduce diagram area. */
+.slide:nth-of-type(11) .reuse-layout{
+  grid-template-rows:minmax(0,1fr) 125px;
+  row-gap:10px;
+}
+.slide:nth-of-type(11) .reuse-image{
+  padding:0 20px;
+}
+.slide:nth-of-type(11) .reuse-image img{
+  max-width:94%;
+  max-height:94%;
+}
+.slide:nth-of-type(11) .reuse-note{
+  gap:12px;
+}
+.slide:nth-of-type(11) .reuse-note .card{
+  padding:12px 15px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+}
+.slide:nth-of-type(11) .reuse-note strong{
+  font-size:16px;
+  margin-bottom:5px;
+}
+
+/* Slide 12: move the table upward, close to the title, instead of vertically centering it. */
+.slide:nth-of-type(12) .body{
+  justify-content:flex-start;
+  padding-top:6px;
+}
+.slide:nth-of-type(12) .table{
+  margin-top:0;
+}
+.slide:nth-of-type(12) .outcome{
+  margin-top:14px;
+}
+
+/* Slide 13: keep the larger content typography comfortably inside the cards. */
+.slide:nth-of-type(13) .grid2 .card{
+  padding:16px 18px;
+}
+
+
+/* FINAL V2: top-alignment + consistent spacing refinement */
+
+/* Consistent visible spacing between heading area and content on requested slides.
+   This is implemented as presentation-safe visual padding without changing content. */
+.slide:nth-of-type(2) .body,
+.slide:nth-of-type(3) .body,
+.slide:nth-of-type(6) .body,
+.slide:nth-of-type(7) .body,
+.slide:nth-of-type(8) .body,
+.slide:nth-of-type(9) .body,
+.slide:nth-of-type(10) .body,
+.slide:nth-of-type(12) .body,
+.slide:nth-of-type(13) .body{
+  justify-content:flex-start;
+  padding-top:22px;
+}
+
+/* Explicitly top-align content-only slides instead of vertically centering. */
+.slide:nth-of-type(2) .body,
+.slide:nth-of-type(3) .body,
+.slide:nth-of-type(9) .body,
+.slide:nth-of-type(10) .body,
+.slide:nth-of-type(13) .body{
+  justify-content:flex-start;
+}
+
+/* Slide 6: use attached journey-context image, fit safely below cards and title. */
+.slide:nth-of-type(6) .context-cards{
+  margin-bottom:12px;
+}
+.slide:nth-of-type(6) .context-image{
+  flex:1;
+  min-height:0;
+  padding:0 10px 2px;
+  overflow:hidden;
+}
+.slide:nth-of-type(6) .context-image img{
+  max-width:96%;
+  max-height:100%;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+  display:block;
+  margin:0 auto;
+}
+
+/* Slide 7: keep upper boxes high and dashboard images readable. */
+.slide:nth-of-type(7) .grid4{
+  margin-top:0;
+}
+.slide:nth-of-type(7) .dashboard-grid{
+  margin-top:10px;
+}
+
+/* Slide 8: top-align the What / When / How row with spacing under heading. */
+.slide:nth-of-type(8) .what-when-how{
+  margin-top:0;
+}
+
+/* Slide 9 and 10: top-align content and retain room for the green outcome strip. */
+.slide:nth-of-type(9) .flow,
+.slide:nth-of-type(10) .grid3{
+  margin-top:0;
+}
+
+/* Slide 12: table closer to heading but still with intentional breathing room. */
+.slide:nth-of-type(12) .table{
+  margin-top:0;
+}
+
+/* Slide 13: top-align existing content only; content itself is unchanged. */
+.slide:nth-of-type(13) .grid2{
+  margin-top:0;
+}
+
 </style>
 </head>
 <body>
 <div class="nav">← → navigate • F fullscreen</div>
 
 <section class="slide">
-  <div><div class="eyebrow">Executive Perspective</div><h2>Enterprise Observability</h2></div>
+  <div class="slide-head"><div class="eyebrow">Executive Perspective</div><h2>Enterprise Observability</h2></div>
   <div class="body">
     <div class="hero">
       <div class="hero-copy">
         <h1>From Customer Signal<br>to Business Action</h1>
         <p>A leadership view of how observability connects customer experience, business outcomes, incident response, and engineering action.</p>
         <div class="callout">Happy Wallet Bank demonstrates one reusable model: see the journey, understand the impact, and act with context.</div>
-        <div style="margin-top:12px"><span class="tag">Customer journey</span><span class="tag">Business health</span><span class="tag">Engineering response</span></div>
-      </div>
-      <div class="card" style="align-self:end">
-        <h3>Prepared by</h3>
-        <p style="font-size:19px;color:var(--muted);margin:5px 0">Dhaval Mistry | Mahantai Journal</p>
+        <div style="margin-top:10px"><span class="tag">Customer journey</span><span class="tag">Business health</span><span class="tag">Engineering response</span></div>
       </div>
     </div>
+    <div class="card prepared-by"><h3>Prepared by</h3><p>Dhaval Mistry | Mahantai Journal</p></div>
   </div>
   <div class="footer"><div>Happy Wallet Bank | Observability POC</div><div>1 / 13</div></div>
 </section>
 
 <section class="slide">
-  <div><div class="eyebrow">Business Need</div><h2>Why Observability Matters</h2></div>
+  <div class="slide-head"><div class="eyebrow">Business Need</div><h2>Why Observability Matters</h2></div>
   <div class="body">
     <div class="grid2">
-      <div class="card">
-        <span class="pill p-amber">Reactive model</span>
-        <h3 style="margin-top:15px">Customer reports the problem first</h3>
-        <ul>
-          <li>Signals are fragmented across browser, API, and database layers.</li>
-          <li>Support and engineering spend time rebuilding context.</li>
-          <li>Leadership sees technical noise instead of customer impact.</li>
-        </ul>
-      </div>
-      <div class="card">
-        <span class="pill p-teal">Target model</span>
-        <h3 style="margin-top:15px">Teams see impact and context earlier</h3>
-        <ul>
-          <li>Customer journey and service health are connected.</li>
-          <li>One correlation ID carries the investigation context.</li>
-          <li>Each audience gets the view required for its decision.</li>
-        </ul>
-      </div>
+      <div class="card"><span class="pill p-amber">Reactive model</span><h3 style="margin-top:14px">Customer reports the problem first</h3><ul><li>Signals are fragmented across browser, API, and database layers.</li><li>Support and engineering spend time rebuilding context.</li><li>Leadership sees technical noise instead of customer impact.</li></ul></div>
+      <div class="card"><span class="pill p-teal">Target model</span><h3 style="margin-top:14px">Teams see impact and context earlier</h3><ul><li>Customer journey and service health are connected.</li><li>One correlation ID carries the investigation context.</li><li>Each audience gets the view required for its decision.</li></ul></div>
     </div>
     <div class="outcome">Goal: reduce the distance between customer impact and confident action.</div>
   </div>
@@ -132,7 +335,7 @@ li{font-size:18px;line-height:1.35;color:var(--muted);margin:7px 0}
 </section>
 
 <section class="slide">
-  <div><div class="eyebrow">Outcome</div><h2>From Reactive Monitoring to Proactive Insight</h2></div>
+  <div class="slide-head"><div class="eyebrow">Outcome</div><h2>From Reactive Monitoring to Proactive Insight</h2></div>
   <div class="body">
     <div class="grid4">
       <div class="stat"><div class="num">Detect</div><div class="label">See customer or service impact earlier</div></div>
@@ -140,60 +343,42 @@ li{font-size:18px;line-height:1.35;color:var(--muted);margin:7px 0}
       <div class="stat"><div class="num">Prioritize</div><div class="label">Focus on what affects the customer and business</div></div>
       <div class="stat"><div class="num">Resolve</div><div class="label">Move engineering to the right failure domain faster</div></div>
     </div>
-    <div class="card" style="margin-top:20px">
-      <div class="metricline"><span class="pill p-teal">Operating principle</span><b>Observability is not a dashboard project. It is a decision-support capability.</b></div>
-    </div>
+    <div class="card" style="margin-top:18px"><div style="display:flex;align-items:center;gap:10px"><span class="pill p-teal">Operating principle</span><b style="font-size:17px">Observability is not a dashboard project. It is a decision-support capability.</b></div></div>
   </div>
   <div class="footer"><div>Customer signal → operational insight → action</div><div>3 / 13</div></div>
 </section>
 
 <section class="slide">
-  <div><div class="eyebrow">Application Context</div><h2>One Customer Journey Across Multiple Layers</h2></div>
-  <div class="body">
-    <div class="diagram"><div style="width:100%;text-align:center"><img src="assets/application_architecture.png" alt="Application architecture"><div class="caption">Synthetic banking journey from browser experience through application services to PostgreSQL.</div></div></div>
+  <div class="slide-head"><div class="eyebrow">Application</div><h2>Application Architecture — Supporting the Customer Journey</h2></div>
+  <div class="body diagram-body">
+    <div class="diagram-frame"><img src="assets/application_architecture.png" alt="Happy Wallet application architecture"></div>
   </div>
-  <div class="footer"><div>Happy Wallet Bank | Synthetic banking application</div><div>4 / 13</div></div>
+  <div class="footer"><div>Browser → application → business processing → data</div><div>4 / 13</div></div>
 </section>
 
 <section class="slide">
-  <div><div class="eyebrow">Observability Model</div><h2>Turn Technical Signals into a Connected Story</h2></div>
-  <div class="body">
-    <div class="diagram"><div style="width:100%;text-align:center"><img src="assets/observability_architecture.png" alt="Observability architecture"><div class="caption">OpenTelemetry signals are routed through a shared collection layer into logs, metrics, traces, and Grafana views.</div></div></div>
+  <div class="slide-head"><div class="eyebrow">Observability</div><h2>Observability Architecture — Connecting Signals Across the Journey</h2></div>
+  <div class="body diagram-body">
+    <div class="diagram-frame"><img src="assets/observability_architecture.png" alt="Observability architecture"></div>
   </div>
-  <div class="footer"><div>Logs + Metrics + Traces + Business Context</div><div>5 / 13</div></div>
+  <div class="footer"><div>Logs + metrics + traces → shared operational context</div><div>5 / 13</div></div>
 </section>
 
 <section class="slide">
-  <div><div class="eyebrow">Journey Context</div><h2>Connect the Customer Journey Without Exposing Sensitive Data</h2></div>
+  <div class="slide-head"><div class="eyebrow">Journey Context</div><h2>Connect the Customer Journey Without Exposing Sensitive Data</h2></div>
   <div class="body">
-    <div class="flow">
-      <div class="card flow-card">
-        <span class="pill p-blue">SESSION ID</span>
-        <h3 style="margin-top:14px">One browser session</h3>
-        <p>Provides continuity across authenticated browser activity without representing customer identity.</p>
-        <div class="question">Question answered: Which activity belongs to the same browser session?</div>
-      </div>
-      <div class="arrow">→</div>
-      <div class="card flow-card">
-        <span class="pill p-teal">CORRELATION ID</span>
-        <h3 style="margin-top:14px">One business journey</h3>
-        <p>Connects the transfer or login journey across multiple requests and operational records.</p>
-        <div class="question">Question answered: Which records belong to this customer journey?</div>
-      </div>
-      <div class="arrow">→</div>
-      <div class="card flow-card">
-        <span class="pill p-purple">TRACE ID</span>
-        <h3 style="margin-top:14px">One technical execution</h3>
-        <p>Shows the distributed execution path across browser, API, business spans, and database calls.</p>
-        <div class="question">Question answered: Where did this execution spend time or fail?</div>
-      </div>
+    <div class="context-cards">
+      <div class="card"><span class="pill p-blue">SESSION ID</span><h3>Browser lifecycle</h3><p>Provides continuity across authenticated browser activity without representing customer identity.</p></div>
+      <div class="card"><span class="pill p-teal">CORRELATION ID</span><h3>One business journey</h3><p>Connects a login or transfer journey across related operational records and requests.</p></div>
+      <div class="card"><span class="pill p-purple">TRACE ID</span><h3>One distributed execution</h3><p>Shows the technical execution path across browser, API, business spans, and database calls.</p></div>
     </div>
+    <div class="context-image"><img src="assets/session_context.png" alt="Session, correlation and trace context diagram"></div>
   </div>
-  <div class="footer"><div>Context without customer PII/NPI</div><div>6 / 13</div></div>
+  <div class="footer"><div>Context for investigation without customer identity</div><div>6 / 13</div></div>
 </section>
 
 <section class="slide">
-  <div><div class="eyebrow">Decision Views</div><h2>One Customer Journey. Four Decision Views.</h2></div>
+  <div class="slide-head"><div class="eyebrow">Decision Views</div><h2>One Customer Journey. Four Decision Views.</h2></div>
   <div class="body">
     <div class="grid4">
       <div class="card decision-card"><span class="pill p-teal">LEADERSHIP</span><div class="q">Are customers succeeding?</div><div class="small"><b>Executive Overview</b><br>Business activity and success rates.<br><br><b>Decision:</b> prioritize impact.</div></div>
@@ -212,7 +397,7 @@ li{font-size:18px;line-height:1.35;color:var(--muted);margin:7px 0}
 </section>
 
 <section class="slide">
-  <div><div class="eyebrow">Executive Operating View</div><h2>From Signals to Business Action</h2><div class="subtitle">The combined business-friendly view of what we see, when we use it, and how teams act.</div></div>
+  <div class="slide-head"><div class="eyebrow">Executive Operating View</div><h2>From Signals to Business Action</h2><div class="subtitle">What we see, when we use it, and how teams act.</div></div>
   <div class="body">
     <div class="what-when-how">
       <div class="card wwh"><span class="pill p-blue">01</span><h3>WHAT we see</h3><ul><li>Customer and business health</li><li>Experience friction and journey failures</li><li>API, processing, and database behavior</li></ul></div>
@@ -225,14 +410,14 @@ li{font-size:18px;line-height:1.35;color:var(--muted);margin:7px 0}
 </section>
 
 <section class="slide">
-  <div><div class="eyebrow">Incident Response</div><h2>A Faster Path from Signal to Resolution</h2></div>
+  <div class="slide-head"><div class="eyebrow">Incident Response</div><h2>A Faster Path from Signal to Resolution</h2></div>
   <div class="body">
     <div class="flow">
-      <div class="card flow-card"><span class="pill p-teal">1. DETECT EARLY</span><h3 style="margin-top:14px">See impact</h3><p>Identify customer or business degradation before it becomes a broad escalation.</p><div class="question">Decision: Is there meaningful impact?</div></div>
+      <div class="card flow-card"><span class="pill p-teal">1. DETECT EARLY</span><h3 style="margin-top:12px">See impact</h3><p>Identify customer or business degradation before it becomes a broad escalation.</p><div class="question">Decision: Is there meaningful impact?</div></div>
       <div class="arrow">→</div>
-      <div class="card flow-card"><span class="pill p-blue">2. UNDERSTAND</span><h3 style="margin-top:14px">Connect the journey</h3><p>Use the affected journey and correlation context to understand where failure appears.</p><div class="question">Decision: Which journey and stage failed?</div></div>
+      <div class="card flow-card"><span class="pill p-blue">2. UNDERSTAND</span><h3 style="margin-top:12px">Connect the journey</h3><p>Use the affected journey and correlation context to understand where failure appears.</p><div class="question">Decision: Which journey and stage failed?</div></div>
       <div class="arrow">→</div>
-      <div class="card flow-card"><span class="pill p-amber">3. RESOLVE</span><h3 style="margin-top:14px">Act precisely</h3><p>Move directly to the service, API, or database behavior requiring engineering attention.</p><div class="question">Decision: Where should we act first?</div></div>
+      <div class="card flow-card"><span class="pill p-amber">3. RESOLVE</span><h3 style="margin-top:12px">Act precisely</h3><p>Move directly to the service, API, or database behavior requiring engineering attention.</p><div class="question">Decision: Where should we act first?</div></div>
     </div>
     <div class="outcome">Leadership outcome: earlier visibility • fewer investigation handoffs • faster recovery decisions</div>
   </div>
@@ -240,12 +425,12 @@ li{font-size:18px;line-height:1.35;color:var(--muted);margin:7px 0}
 </section>
 
 <section class="slide">
-  <div><div class="eyebrow">Governance</div><h2>Privacy and Security by Design</h2></div>
+  <div class="slide-head"><div class="eyebrow">Governance</div><h2>Privacy and Security by Design</h2></div>
   <div class="body privacy">
     <div class="grid3">
-      <div class="card"><span class="pill p-amber">EXCLUDED</span><h3 style="margin-top:14px">Sensitive banking data</h3><ul><li>No passwords or access tokens</li><li>No account numbers or transfer amounts</li><li>No request/response bodies or SQL parameters</li></ul></div>
-      <div class="card"><span class="pill p-blue">CONTROLLED</span><h3 style="margin-top:14px">Safe telemetry design</h3><ul><li>Bounded metric dimensions</li><li>Searchable context kept out of metric labels</li><li>Approved log and trace attributes only</li></ul></div>
-      <div class="card"><span class="pill p-teal">USEFUL</span><h3 style="margin-top:14px">Operationally actionable</h3><ul><li>Journey stage and outcome</li><li>Failure category and route</li><li>Correlation and distributed trace context</li></ul></div>
+      <div class="card"><span class="pill p-amber">EXCLUDED</span><h3 style="margin-top:12px">Sensitive banking data</h3><ul><li>No passwords or access tokens</li><li>No account numbers or transfer amounts</li><li>No request/response bodies or SQL parameters</li></ul></div>
+      <div class="card"><span class="pill p-blue">CONTROLLED</span><h3 style="margin-top:12px">Safe telemetry design</h3><ul><li>Bounded metric dimensions</li><li>Searchable context kept out of metric labels</li><li>Approved log and trace attributes only</li></ul></div>
+      <div class="card"><span class="pill p-teal">USEFUL</span><h3 style="margin-top:12px">Operationally actionable</h3><ul><li>Journey stage and outcome</li><li>Failure category and route</li><li>Correlation and distributed trace context</li></ul></div>
     </div>
     <div class="outcome">Observability should improve investigation without creating a second copy of sensitive banking data.</div>
   </div>
@@ -253,19 +438,14 @@ li{font-size:18px;line-height:1.35;color:var(--muted);margin:7px 0}
 </section>
 
 <section class="slide">
-  <div><div class="eyebrow">Reuse</div><h2>A Reusable Enterprise Observability Pattern</h2></div>
+  <div class="slide-head"><div class="eyebrow">Reuse</div><h2>Reusable OpenTelemetry Pattern</h2></div>
   <div class="body">
-    <div class="grid2" style="align-items:center">
-      <div class="diagram"><img src="assets/reusable_pattern.png" alt="Reusable OpenTelemetry pattern"></div>
-      <div class="card">
-        <h3>What makes the pattern reusable</h3>
-        <ul>
-          <li>Standard telemetry and context conventions</li>
-          <li>Consistent collection and routing</li>
-          <li>Audience-specific views built from shared evidence</li>
-          <li>Privacy controls applied before telemetry leaves the application</li>
-        </ul>
-        <div class="callout" style="margin-top:14px">The same model can extend to APIs, web applications, workers, integrations, and microservices.</div>
+    <div class="reuse-layout">
+      <div class="reuse-image"><img src="assets/reusable_pattern.png" alt="Reusable OpenTelemetry pattern"></div>
+      <div class="reuse-note">
+        <div class="card"><strong>Common conventions</strong><span>Naming, context propagation, and privacy rules.</span></div>
+        <div class="card"><strong>Shared collection</strong><span>Standard signal routing through the observability layer.</span></div>
+        <div class="card"><strong>Reusable operations</strong><span>Dashboards and investigation patterns across applications.</span></div>
       </div>
     </div>
   </div>
@@ -273,7 +453,7 @@ li{font-size:18px;line-height:1.35;color:var(--muted);margin:7px 0}
 </section>
 
 <section class="slide">
-  <div><div class="eyebrow">Scale</div><h2>Observability as an Enterprise Operating Model</h2></div>
+  <div class="slide-head"><div class="eyebrow">Scale</div><h2>Observability as an Enterprise Operating Model</h2></div>
   <div class="body">
     <div class="table">
       <div class="th">Audience</div><div class="th">What they need</div><div class="th">What they use</div><div class="th">How they act</div>
@@ -288,19 +468,13 @@ li{font-size:18px;line-height:1.35;color:var(--muted);margin:7px 0}
 </section>
 
 <section class="slide">
-  <div><div class="eyebrow">Next Step</div><h2>Path to Production</h2></div>
+  <div class="slide-head"><div class="eyebrow">Next Step</div><h2>Path to Production</h2></div>
   <div class="body">
     <div class="grid2">
-      <div class="card">
-        <span class="pill p-teal">PROVEN IN THE POC</span>
-        <ul><li>End-to-end customer journey traceability</li><li>Business context connected to technical signals</li><li>Leadership, support, and engineering decision views</li><li>Privacy-aware telemetry design</li></ul>
-      </div>
-      <div class="card">
-        <span class="pill p-blue">PRODUCTION ROLLOUT</span>
-        <ul><li>High availability, retention, and environment separation</li><li>Enterprise access controls and alerting workflow</li><li>Service-level objectives and operational ownership</li><li>Standard libraries and rollout to additional applications</li></ul>
-      </div>
+      <div class="card"><span class="pill p-teal">PROVEN IN THE POC</span><ul><li>End-to-end customer journey traceability</li><li>Business context connected to technical signals</li><li>Leadership, support, and engineering decision views</li><li>Privacy-aware telemetry design</li></ul></div>
+      <div class="card"><span class="pill p-blue">PRODUCTION ROLLOUT</span><ul><li>High availability, retention, and environment separation</li><li>Enterprise access controls and alerting workflow</li><li>Service-level objectives and operational ownership</li><li>Standard libraries and rollout to additional applications</li></ul></div>
     </div>
-    <div class="card linkbox" style="margin-top:18px">
+    <div class="card linkbox" style="margin-top:16px">
       <b>Project repository:</b> <a href="https://github.com/dhaval-mistry/grafana-poc">github.com/dhaval-mistry/grafana-poc</a><br>
       <b>Technical presentation:</b> <a href="https://dhaval-mistry.github.io/grafana-poc/presentation/full/">dhaval-mistry.github.io/grafana-poc/presentation/full/</a>
     </div>
